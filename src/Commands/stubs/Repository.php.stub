@@ -1,0 +1,15 @@
+<?php
+
+namespace {{ namespace }};
+
+use ElegantMedia\SimpleRepository\SimpleBaseRepository;
+
+class {{ class }} extends SimpleBaseRepository
+{
+
+	public function __construct(ModelClass $model)
+	{
+		parent::__construct($model);
+	}
+
+}

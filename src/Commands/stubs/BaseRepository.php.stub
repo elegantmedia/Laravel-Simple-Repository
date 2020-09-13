@@ -1,0 +1,12 @@
+<?php
+
+namespace {{ namespace }};
+
+use ElegantMedia\SimpleRepository\SimpleBaseRepository;
+
+abstract class BaseRepository extends SimpleBaseRepository
+{
+
+	// Add common repository logic for the application here
+
+}
