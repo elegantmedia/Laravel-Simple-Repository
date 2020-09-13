@@ -3,7 +3,6 @@
 
 namespace ElegantMedia\SimpleRepository;
 
-
 interface SimpleRepositoryInterface
 {
 
@@ -82,5 +81,4 @@ interface SimpleRepositoryInterface
 	public function delete($id);
 
 	public function deleteWhere(array $where);
-
 }

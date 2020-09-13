@@ -3,7 +3,6 @@
 
 namespace ElegantMedia\SimpleRepository\Commands;
 
-
 use Illuminate\Console\GeneratorCommand;
 use Illuminate\Support\Str;
 use Symfony\Component\Console\Input\InputOption;

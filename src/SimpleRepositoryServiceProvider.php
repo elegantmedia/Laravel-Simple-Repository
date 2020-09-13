@@ -3,7 +3,6 @@
 
 namespace ElegantMedia\SimpleRepository;
 
-
 use ElegantMedia\SimpleRepository\Commands\RepositoryMakeCommand;
 use Illuminate\Support\ServiceProvider;
 
@@ -17,5 +16,4 @@ class SimpleRepositoryServiceProvider extends ServiceProvider
 			$this->commands(RepositoryMakeCommand::class);
 		}
 	}
-
 }

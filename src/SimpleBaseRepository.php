@@ -3,7 +3,6 @@
 
 namespace ElegantMedia\SimpleRepository;
 
-
 use ElegantMedia\SimpleRepositoriy\Exceptions\KeyNotFoundInAttributesException;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -52,7 +51,7 @@ class SimpleBaseRepository implements SimpleRepositoryInterface
 	| List/Index/Search
 	|--------------------------------------------------------------------------
 	|
-	| 
+	|
 	|
 	*/
 
@@ -127,7 +126,9 @@ class SimpleBaseRepository implements SimpleRepositoryInterface
 		if (isset($attributes[$id])) {
 			$model = $this->findByField($id, $attributes[$id]);
 
-			if ($model) return $model;
+			if ($model) {
+				return $model;
+			}
 		}
 
 		return $this->create($attributes);
@@ -142,7 +143,7 @@ class SimpleBaseRepository implements SimpleRepositoryInterface
 	{
 		$whereKey = $this->getPrimaryKey($whereKey);
 
-		try{
+		try {
 			$this->validateAttributesHaveKey($attributes, $whereKey);
 		} catch (KeyNotFoundInAttributesException $e) {
 			return null;
@@ -311,7 +312,9 @@ class SimpleBaseRepository implements SimpleRepositoryInterface
 	 */
 	public function getPrimaryKey($key = null): string
 	{
-		if ($key) return $key;
+		if ($key) {
+			return $key;
+		}
 
 		return $this->primaryKey;
 	}
@@ -332,7 +335,9 @@ class SimpleBaseRepository implements SimpleRepositoryInterface
 	protected function validatePrerequisites(): bool
 	{
 		if ($this->model === null) {
-			throw new ModelNotFoundException('Model not set on repository. Pass a model to constructor or call `setModel()` to set a model.');
+			throw new ModelNotFoundException(
+				'Model not set on repository. Pass a model to constructor or call `setModel()` to set a model.'
+			);
 		}
 
 		return true;
@@ -349,6 +354,4 @@ class SimpleBaseRepository implements SimpleRepositoryInterface
 			throw new KeyNotFoundInAttributesException();
 		}
 	}
-
-
 }
