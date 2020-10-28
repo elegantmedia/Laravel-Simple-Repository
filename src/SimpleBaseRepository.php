@@ -6,7 +6,7 @@ namespace ElegantMedia\SimpleRepository;
 use ElegantMedia\SimpleRepositoriy\Exceptions\KeyNotFoundInAttributesException;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
-use Illuminate\Database\Query\Builder;
+use Illuminate\Database\Eloquent\Builder;
 
 class SimpleBaseRepository implements SimpleRepositoryInterface
 {
@@ -84,7 +84,16 @@ class SimpleBaseRepository implements SimpleRepositoryInterface
 
 	public function search($filter = null)
 	{
-		return $this->newModel()->search();
+		$model = $this->getModel();
+
+		$searchQuery = request()->get('q');
+
+		return $model::search($searchQuery);
+	}
+
+	public function searchPaginate($filter = null)
+	{
+		return $this->search($filter)->paginate();
 	}
 
 	/*
@@ -263,9 +272,9 @@ class SimpleBaseRepository implements SimpleRepositoryInterface
 		return $model->save();
 	}
 
-	public function delete($id)
+	public function delete($ids)
 	{
-		return $this->newModel()->delete($id);
+		return $this->getModel()->destroy($ids);
 	}
 
 	public function deleteWhere(array $where)
@@ -294,6 +303,14 @@ class SimpleBaseRepository implements SimpleRepositoryInterface
 	{
 		$this->model = $model;
 		return $this;
+	}
+
+	/**
+	 * @return Model|null
+	 */
+	public function getModel(): ?Model
+	{
+		return $this->model;
 	}
 
 	/**
@@ -354,4 +371,6 @@ class SimpleBaseRepository implements SimpleRepositoryInterface
 			throw new KeyNotFoundInAttributesException();
 		}
 	}
+
+
 }

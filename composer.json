@@ -1,14 +1,19 @@
 {
     "name": "elegantmedia/laravel-simple-repository",
     "type": "library",
-    "description": "Basic implementation of Repository pattern for Laravel projects.",
+    "description": "Lightweight Repository pattern for Laravel 8 projects. Includes a repository generator.",
     "keywords": [
         "elegantmedia",
+        "emedia",
         "laravel-simple-repository",
         "repository",
+        "repositories",
         "pattern",
         "eloquent",
-        "laravel8"
+        "laravel8",
+        "orm",
+        "l5repository",
+        "generator"
     ],
     "homepage": "https://github.com/elegantmedia/laravel-simple-repository",
     "license": "MIT",
