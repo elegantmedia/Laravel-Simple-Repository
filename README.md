@@ -81,15 +81,113 @@ app/Entities/Cars/CarsRepository.php
 app/Entities/Cars/Car.php
 ```
 
+# Search
+
+### Model
+
+To add basic SQL `LIKE` search to a model, add the `SearchableLike` trait to a model.
+
+```
+namespace App\Models\User;
+
+use Illuminate\Database\Eloquent\Model;
+use ElegantMedia\SimpleRepository\Search\Eloquent\SearchableLike;
+
+class User Extends Model 
+{
+
+	use SearchableLike;
+	
+	protected $searchable = [
+		'name',
+		'email',
+	];
+
+}
+```
+
+Now you can do SQL based keyword searches on Models directly.
+
+```
+use App\Models\User;
+
+// get all users where `name` or `email` matches `john`
+// This will return a paginator
+$users = User::search('john');
+```
+
+### Repository
+
+You can call `search` on a repository to build advanced reusable filters.
+
+First, setup the repository
+```
+<?php
+
+namespace App\Models;
+
+use ElegantMedia\SimpleRepository\SimpleBaseRepository as BaseRepository;
+
+class UsersRepository extends BaseRepository
+{
+
+	// bind the model to the Repository
+	public function __construct(User $model)
+	{
+		parent::__construct($model);
+	}
+
+}
+```
+
+Then call search on your repository. Usually this happens from a controller or a parent repository.
+
+```
+use App\Models\UsersRepository;
+use App\Models\User;
+
+$repo = app(UsersRepository::class);
+
+$keyword = 'jane';
+
+// Example: Get paginated results of all Users, that has a `name` or `email` LIKE `jane`
+$matchedUsers = User::search($keyword);
+```
+
+Because the SearchFilter is a query itself, you can use it to chain conditions.
+```
+$filter = $repo->newSearchFilter();
+
+// Example: Get results, `with` related models
+$filter->with(['roles', 'projects']);
+
+// Example: Only include Users, if `projects` have a status of `completed`
+$filter->whereHas('projects', function($q) {
+	$q->where('status', 'completed');
+});
+
+// Paginated results
+$users = User::search($filter);
+
+// Change results per page
+$filter->setPerPage(100):
+
+// Non-paginated results
+$filter->paginate(false);
+$users = User::search($filter);
+```
+
+The default filter will add `q` from query string, and sort results in descending order. If you don't want that, create a filter without the defaults.
+
+```
+$filter = $repo->newSearchFilter(false);
+```
+
+
 ## Change log
 
 Please see [CHANGELOG](CHANGELOG.md) for more information on what has changed recently.
 
-## Testing
-
-``` bash
-$ composer test
-```
 
 ## Contributing
 

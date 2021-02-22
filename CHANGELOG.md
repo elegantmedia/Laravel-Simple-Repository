@@ -2,19 +2,10 @@
 
 Updates should follow the [Keep a CHANGELOG](http://keepachangelog.com/) principles.
 
-## NEXT - YYYY-MM-DD
+## v2.0
 
 ### Added
-- Nothing
+- `searchable()` method will now accept a `SearchFilter`
 
 ### Deprecated
-- Nothing
-
-### Fixed
-- Nothing
-
-### Removed
-- Nothing
-
-### Security
-- Nothing
+- `searchPaginate()` will be removed in future.

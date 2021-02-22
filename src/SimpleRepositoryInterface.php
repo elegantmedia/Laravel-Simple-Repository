@@ -3,12 +3,16 @@
 
 namespace ElegantMedia\SimpleRepository;
 
+use ElegantMedia\SimpleRepository\Search\Filterable;
+
 interface SimpleRepositoryInterface
 {
 
 	public function newModel();
 
 	public function newQuery();
+
+	public function getModelClass(): string;
 
 	/*
 	 |-----------------------------------------------------------
@@ -22,7 +26,9 @@ interface SimpleRepositoryInterface
 
 	public function simplePaginate($perPage = 50, $with = [], $filter = null);
 
-	public function search($filter = null);
+	public function search(Filterable $filter = null);
+
+	public function newSearchFilter(): Filterable;
 
 	/*
 	 |-----------------------------------------------------------

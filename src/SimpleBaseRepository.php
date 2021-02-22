@@ -4,6 +4,8 @@
 namespace ElegantMedia\SimpleRepository;
 
 use ElegantMedia\SimpleRepositoriy\Exceptions\KeyNotFoundInAttributesException;
+use ElegantMedia\SimpleRepository\Search\Filterable;
+use ElegantMedia\SimpleRepository\Search\SearchFilter;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Database\Eloquent\Builder;
@@ -30,6 +32,11 @@ class SimpleBaseRepository implements SimpleRepositoryInterface
 		$class = get_class($this->model);
 
 		return new $class;
+	}
+
+	public function getModelClass(): string
+	{
+		return get_class($this->model);
 	}
 
 	public function newQuery($columns = ['*'])
@@ -82,18 +89,48 @@ class SimpleBaseRepository implements SimpleRepositoryInterface
 		return $query->simplePaginate($perPage);
 	}
 
-	public function search($filter = null)
+	public function search(Filterable $filter = null)
 	{
-		$model = $this->getModel();
+		if (!$filter) {
+			$filter = $this->newSearchFilter();
+		}
 
-		$searchQuery = request()->get('q');
+		if ($filter->isPaginated()) {
+			return $filter->getQuery()->paginate($filter->getPerPage());
+		}
 
-		return $model::search($searchQuery);
+		return $filter->getQuery()->get();
 	}
 
-	public function searchPaginate($filter = null)
+	/**
+	 * @param bool $withDefaults
+	 *
+	 * @return Filterable
+	 */
+	public function newSearchFilter($withDefaults = true): Filterable
 	{
-		return $this->search($filter)->paginate();
+		$query = $this->model->newQuery();
+
+		$filter = app(SearchFilter::class);
+
+		$filter->setQuery($query);
+
+		if ($withDefaults) {
+			$filter->setQueryDefaults();
+		}
+
+		return $filter;
+	}
+
+	/**
+	 * @param Filterable|null $filter
+	 * @deprecated This method will be removed in future. Call search() method.
+	 *
+	 * @return \Illuminate\Contracts\Pagination\LengthAwarePaginator|Builder[]|\Illuminate\Database\Eloquent\Collection
+	 */
+	public function searchPaginate(Filterable $filter = null)
+	{
+		return $this->search($filter);
 	}
 
 	/*
