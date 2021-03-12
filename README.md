@@ -151,7 +151,7 @@ $repo = app(UsersRepository::class);
 $keyword = 'jane';
 
 // Example: Get paginated results of all Users, that has a `name` or `email` LIKE `jane`
-$matchedUsers = User::search($keyword);
+$matchedUsers = User::search($keyword)->paginate();
 
 // Same result can be achieved with the repository. 
 // If a null value is passed, it will get the `q` parameter from Request as the keyword
@@ -178,7 +178,7 @@ $filter->setPerPage(100):
 
 // Non-paginated results
 $filter->paginate(false);
-$users =$repo->search($filter);
+$users = $repo->search($filter);
 ```
 
 The default filter will add `q` from query string, and sort results in descending order. If you don't want that, create a filter without the defaults.
