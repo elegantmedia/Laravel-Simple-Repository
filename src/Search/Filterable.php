@@ -3,7 +3,6 @@
 
 namespace ElegantMedia\SimpleRepository\Search;
 
-
 use Illuminate\Database\Eloquent\Builder;
 
 interface Filterable
@@ -16,5 +15,4 @@ interface Filterable
 	public function paginate(bool $value);
 
 	public function isPaginated(): bool;
-
 }

@@ -3,7 +3,6 @@
 
 namespace ElegantMedia\SimpleRepository\Search\Eloquent;
 
-
 trait SearchableLike
 {
 
@@ -15,7 +14,9 @@ trait SearchableLike
 	 */
 	public function searchable(): array
 	{
-		if (isset($this->searchable)) return $this->searchable;
+		if (isset($this->searchable)) {
+			return $this->searchable;
+		}
 
 		return [];
 	}
@@ -35,5 +36,4 @@ trait SearchableLike
 			}
 		});
 	}
-
 }

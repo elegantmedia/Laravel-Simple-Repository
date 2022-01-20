@@ -123,5 +123,4 @@ class SearchFilter implements Filterable
 
 		return call_user_func_array([$this->query, $name], $args);
 	}
-
 }

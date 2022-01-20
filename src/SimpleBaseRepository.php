@@ -408,6 +408,4 @@ class SimpleBaseRepository implements SimpleRepositoryInterface
 			throw new KeyNotFoundInAttributesException();
 		}
 	}
-
-
 }
