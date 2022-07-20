@@ -36,15 +36,27 @@ class SearchFilter implements Filterable
 			throw new InvalidArgumentException('You have not set a query first. Set a query with setQuery() method.');
 		}
 
-		// set defaults
-		$request = request();
-
-		if ($request->filled('q')) {
-			$this->query->search($request->get('q'));
-		}
+		// make searchable
+		$this->searchable();
 
 		// default order
 		$this->query->orderByDesc('id');
+
+		return $this;
+	}
+
+	/**
+	 * @param string $param
+	 *
+	 * @return $this
+	 */
+	public function searchable(string $param = 'q'): self
+	{
+		$request = request();
+
+		if ($request->filled($param)) {
+			$this->query->search($request->get($param));
+		}
 
 		return $this;
 	}
