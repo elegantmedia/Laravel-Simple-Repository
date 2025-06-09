@@ -187,20 +187,36 @@ The default filter will add `q` from query string, and sort results in descendin
 $filter = $repo->newSearchFilter(false);
 ```
 
-
 ## Change log
 
-Please see [CHANGELOG](CHANGELOG.md) for more information on what has changed recently.
+See [CHANGELOG](CHANGELOG.md) for more information on what has changed recently.
 
+## Development
+
+### Code Style
+
+This package uses PHP CS Fixer to maintain consistent code style. The configuration follows PSR-12 standards with additional Laravel-friendly rules.
+
+To check code style:
+```bash
+composer check-style
+```
+
+To automatically fix code style issues:
+```bash
+composer fix-style
+```
+
+### Testing
+
+Run the test suite:
+```bash
+composer test
+```
 
 ## Contributing
 
-Please see [CONTRIBUTING](CONTRIBUTING.md) and for details.
-
-## Credits
-
-- [Elegant Media][link-author]
-- [All Contributors][link-contributors]
+See [CONTRIBUTING](.github/CONTRIBUTING.md) and for details.
 
 ## License
 

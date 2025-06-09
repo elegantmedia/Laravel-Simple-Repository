@@ -1,18 +1,16 @@
 <?php
 
-
 namespace ElegantMedia\SimpleRepository;
 
 use ElegantMedia\SimpleRepositoriy\Exceptions\KeyNotFoundInAttributesException;
 use ElegantMedia\SimpleRepository\Search\Filterable;
 use ElegantMedia\SimpleRepository\Search\SearchFilter;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
-use Illuminate\Database\Eloquent\Builder;
 
 class SimpleBaseRepository implements SimpleRepositoryInterface
 {
-
 	protected $primaryKey = 'id';
 
 	/**
@@ -31,7 +29,7 @@ class SimpleBaseRepository implements SimpleRepositoryInterface
 
 		$class = get_class($this->model);
 
-		return new $class;
+		return new $class();
 	}
 
 	public function getModelClass(): string
@@ -124,6 +122,7 @@ class SimpleBaseRepository implements SimpleRepositoryInterface
 
 	/**
 	 * @param Filterable|null $filter
+	 *
 	 * @deprecated This method will be removed in future. Call search() method.
 	 *
 	 * @return \Illuminate\Contracts\Pagination\LengthAwarePaginator|Builder[]|\Illuminate\Database\Eloquent\Collection
@@ -198,8 +197,6 @@ class SimpleBaseRepository implements SimpleRepositoryInterface
 		return $this->findByField($attributes[$whereKey], $whereValue);
 	}
 
-
-
 	/*
 	|--------------------------------------------------------------------------
 	| Create
@@ -218,7 +215,6 @@ class SimpleBaseRepository implements SimpleRepositoryInterface
 		return $model;
 	}
 
-
 	/*
 	|--------------------------------------------------------------------------
 	| Update or Insert/Create
@@ -227,7 +223,6 @@ class SimpleBaseRepository implements SimpleRepositoryInterface
 	|
 	|
 	*/
-
 
 	public function updateOrInsert($attributes, $id = null)
 	{
@@ -239,6 +234,7 @@ class SimpleBaseRepository implements SimpleRepositoryInterface
 			if ($model) {
 				// remove the ID, because we already have the correct one
 				unset($attributes[$id]);
+
 				return $this->update($model, $attributes);
 			}
 		}
@@ -251,7 +247,6 @@ class SimpleBaseRepository implements SimpleRepositoryInterface
 		return $this->updateOrInsert($attributes, 'uuid');
 	}
 
-
 	/*
 	|--------------------------------------------------------------------------
 	| Save/Update
@@ -262,8 +257,9 @@ class SimpleBaseRepository implements SimpleRepositoryInterface
 	*/
 
 	/**
-	 * @param $model
+	 * @param       $model
 	 * @param array $attributes
+	 *
 	 * @return mixed
 	 */
 	public function update($model, array $attributes)
@@ -272,18 +268,19 @@ class SimpleBaseRepository implements SimpleRepositoryInterface
 	}
 
 	/**
-	 *
-	 * Update a Model by a given ID
+	 * Update a Model by a given ID.
 	 *
 	 * @example
 	 * If attributes contain ['id' => 5, 'name' => 'John'],
 	 * it will find the record and update it.
 	 *
-	 * @param array $attributes
-	 * @param $id
+	 * @param array       $attributes
+	 * @param             $id
 	 * @param string|null $idColumn
+	 *
 	 * @throws KeyNotFoundInAttributesException
 	 * @throws ModelNotFoundException
+	 *
 	 * @return Model
 	 */
 	public function updateById(array $attributes, $id, $idColumn = null)
@@ -334,11 +331,13 @@ class SimpleBaseRepository implements SimpleRepositoryInterface
 
 	/**
 	 * @param Model|null $model
+	 *
 	 * @return SimpleBaseRepository
 	 */
 	public function setModel(?Model $model): SimpleBaseRepository
 	{
 		$this->model = $model;
+
 		return $this;
 	}
 
@@ -352,16 +351,19 @@ class SimpleBaseRepository implements SimpleRepositoryInterface
 
 	/**
 	 * @param string $primaryKey
+	 *
 	 * @return SimpleBaseRepository
 	 */
 	public function setPrimaryKey(string $primaryKey): SimpleBaseRepository
 	{
 		$this->primaryKey = $primaryKey;
+
 		return $this;
 	}
 
 	/**
 	 * @param null $key
+	 *
 	 * @return string
 	 */
 	public function getPrimaryKey($key = null): string
@@ -372,7 +374,6 @@ class SimpleBaseRepository implements SimpleRepositoryInterface
 
 		return $this->primaryKey;
 	}
-
 
 	/*
 	|--------------------------------------------------------------------------
@@ -400,6 +401,7 @@ class SimpleBaseRepository implements SimpleRepositoryInterface
 	/**
 	 * @param $attributes
 	 * @param $key
+	 *
 	 * @throws KeyNotFoundInAttributesException
 	 */
 	protected function validateAttributesHaveKey($attributes, $key): void

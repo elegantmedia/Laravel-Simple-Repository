@@ -1,6 +1,5 @@
 <?php
 
-
 namespace ElegantMedia\SimpleRepository\Search;
 
 use Illuminate\Database\Eloquent\Builder;
@@ -10,7 +9,6 @@ use InvalidArgumentException;
 /** @mixin Builder */
 class SearchFilter implements Filterable
 {
-
 	protected $query;
 
 	protected $perPage = 50;
@@ -25,8 +23,7 @@ class SearchFilter implements Filterable
 	}
 
 	/**
-	 *
-	 * Set default options for the search filter
+	 * Set default options for the search filter.
 	 *
 	 * @return $this
 	 */
@@ -123,7 +120,7 @@ class SearchFilter implements Filterable
 
 	/**
 	 * @param string $name
-	 * @param $args
+	 * @param        $args
 	 *
 	 * @return mixed
 	 */

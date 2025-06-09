@@ -6,3 +6,5 @@ phpunit.xml
 .idea
 .phpunit.result.cache
 TODO.md
+*.cache
+.claude/

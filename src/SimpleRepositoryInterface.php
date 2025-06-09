@@ -1,13 +1,11 @@
 <?php
 
-
 namespace ElegantMedia\SimpleRepository;
 
 use ElegantMedia\SimpleRepository\Search\Filterable;
 
 interface SimpleRepositoryInterface
 {
-
 	public function newModel();
 
 	public function newQuery();

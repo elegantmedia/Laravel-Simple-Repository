@@ -1,16 +1,12 @@
 <?php
 
-
 namespace ElegantMedia\SimpleRepository\Commands;
 
-use Illuminate\Console\GeneratorCommand;
 use Illuminate\Support\Str;
 use Symfony\Component\Console\Input\InputOption;
 
 class RepositoryMakeCommand extends \Illuminate\Console\GeneratorCommand
 {
-
-
 	/**
 	 * The console command name.
 	 *
@@ -37,13 +33,14 @@ class RepositoryMakeCommand extends \Illuminate\Console\GeneratorCommand
 	 */
 	protected function getStub()
 	{
-		return __DIR__.DIRECTORY_SEPARATOR."stubs".DIRECTORY_SEPARATOR.'Repository.php.stub';
+		return __DIR__ . DIRECTORY_SEPARATOR . 'stubs' . DIRECTORY_SEPARATOR . 'Repository.php.stub';
 	}
 
 	/**
 	 * Get the default namespace for the class.
 	 *
-	 * @param  string  $rootNamespace
+	 * @param string $rootNamespace
+	 *
 	 * @return string
 	 */
 	protected function getDefaultNamespace($rootNamespace)
@@ -51,10 +48,10 @@ class RepositoryMakeCommand extends \Illuminate\Console\GeneratorCommand
 		$dir = $this->option('dir');
 
 		if ($this->option('group')) {
-			return $rootNamespace."\\{$dir}\\".$this->getEntityPlural();
+			return $rootNamespace . "\\{$dir}\\" . $this->getEntityPlural();
 		}
 
-		return $rootNamespace."\\{$dir}";
+		return $rootNamespace . "\\{$dir}";
 	}
 
 	protected function getPath($name)
@@ -74,8 +71,9 @@ class RepositoryMakeCommand extends \Illuminate\Console\GeneratorCommand
 	/**
 	 * Replace the class name for the given stub.
 	 *
-	 * @param  string  $stub
-	 * @param  string  $name
+	 * @param string $stub
+	 * @param string $name
+	 *
 	 * @return string
 	 */
 	protected function replaceClass($stub, $name)
@@ -92,7 +90,8 @@ class RepositoryMakeCommand extends \Illuminate\Console\GeneratorCommand
 	/**
 	 * Build the class with the given name.
 	 *
-	 * @param  string  $name
+	 * @param string $name
+	 *
 	 * @return string
 	 *
 	 * @throws \Illuminate\Contracts\Filesystem\FileNotFoundException

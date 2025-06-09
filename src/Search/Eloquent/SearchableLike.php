@@ -1,14 +1,11 @@
 <?php
 
-
 namespace ElegantMedia\SimpleRepository\Search\Eloquent;
 
 trait SearchableLike
 {
-
 	/**
-	 *
-	 * Searchable method
+	 * Searchable method.
 	 *
 	 * @return array
 	 */
@@ -22,8 +19,7 @@ trait SearchableLike
 	}
 
 	/**
-	 *
-	 * Add a basic LIKE based searchable feature
+	 * Add a basic LIKE based searchable feature.
 	 *
 	 * @param $query
 	 * @param $searchQuery
