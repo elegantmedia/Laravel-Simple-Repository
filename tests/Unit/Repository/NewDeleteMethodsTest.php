@@ -16,6 +16,7 @@ class NewDeleteMethodsTest extends TestCase
 
 		$this->repository = new TestRepository();
 	}
+
 	/**
 	 * Test deleteMany method.
 	 */
@@ -33,7 +34,7 @@ class NewDeleteMethodsTest extends TestCase
 		$this->assertNull($this->repository->find($model1->id));
 		$this->assertNull($this->repository->find($model2->id));
 		$this->assertNotNull($this->repository->find($model3->id));
-		
+
 		// Verify count
 		$this->assertEquals(1, TestModel::count());
 	}

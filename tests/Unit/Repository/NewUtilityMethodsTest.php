@@ -16,6 +16,7 @@ class NewUtilityMethodsTest extends TestCase
 
 		$this->repository = new TestRepository();
 	}
+
 	/**
 	 * Test random method.
 	 */

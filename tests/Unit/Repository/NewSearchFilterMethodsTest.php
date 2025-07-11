@@ -18,6 +18,7 @@ class NewSearchFilterMethodsTest extends TestCase
 
 		$this->repository = new TestRepository();
 	}
+
 	/**
 	 * Test setSearchBy method (alias for setKeyword).
 	 */
@@ -34,7 +35,7 @@ class NewSearchFilterMethodsTest extends TestCase
 	public function test_set_search_by_is_chainable(): void
 	{
 		$filter = new SearchFilter(TestModel::query());
-		
+
 		$result = $filter->setSearchBy('chainable');
 
 		$this->assertInstanceOf(SearchFilter::class, $result);
@@ -47,7 +48,7 @@ class NewSearchFilterMethodsTest extends TestCase
 	public function test_set_sort_order_sets_direction(): void
 	{
 		$filter = new SearchFilter(TestModel::query());
-		
+
 		$filter->setSortBy('name');
 		$filter->setSortOrder('desc');
 
@@ -57,7 +58,7 @@ class NewSearchFilterMethodsTest extends TestCase
 	public function test_set_sort_order_accepts_uppercase(): void
 	{
 		$filter = new SearchFilter(TestModel::query());
-		
+
 		$filter->setSortOrder('DESC');
 
 		$this->assertEquals('desc', $filter->getSortDirection());
@@ -66,7 +67,7 @@ class NewSearchFilterMethodsTest extends TestCase
 	public function test_set_sort_order_is_chainable(): void
 	{
 		$filter = new SearchFilter(TestModel::query());
-		
+
 		$result = $filter->setSortOrder('asc');
 
 		$this->assertInstanceOf(SearchFilter::class, $result);
@@ -98,7 +99,7 @@ class NewSearchFilterMethodsTest extends TestCase
 	public function test_where_in_is_chainable(): void
 	{
 		$filter = new SearchFilter(TestModel::query());
-		
+
 		$result = $filter->whereIn('id', [1, 2, 3]);
 
 		$this->assertInstanceOf(SearchFilter::class, $result);
@@ -176,10 +177,10 @@ class NewSearchFilterMethodsTest extends TestCase
 	public function test_where_between_with_dates(): void
 	{
 		$filter = new SearchFilter(TestModel::query());
-		
+
 		$startDate = Carbon::now()->subDays(7);
 		$endDate = Carbon::now();
-		
+
 		$filter->whereBetween('created_at', [$startDate, $endDate]);
 
 		// This would filter records created in the last 7 days
@@ -198,7 +199,7 @@ class NewSearchFilterMethodsTest extends TestCase
 		$this->createTestModel(['status' => 'inactive', 'price' => 300, 'name' => 'C']);
 
 		$filter = $this->repository->newSearchFilter();
-		
+
 		// Add multiple order by clauses
 		$filter->orderBy('status', 'asc')
 			   ->orderBy('price', 'desc')
@@ -209,7 +210,7 @@ class NewSearchFilterMethodsTest extends TestCase
 		// First should be sorted by status (active first)
 		// Then by price (higher first)
 		// Then by name (alphabetically)
-		
+
 		$first = $results->items()[0];
 		$this->assertEquals('active', $first->status);
 		$this->assertEquals(200, $first->price);
@@ -219,7 +220,7 @@ class NewSearchFilterMethodsTest extends TestCase
 	public function test_order_by_is_chainable(): void
 	{
 		$filter = new SearchFilter(TestModel::query());
-		
+
 		$result = $filter->orderBy('created_at', 'desc');
 
 		$this->assertInstanceOf(SearchFilter::class, $result);
@@ -238,7 +239,7 @@ class NewSearchFilterMethodsTest extends TestCase
 		$this->createTestModel(['name' => 'Model Four', 'status' => 'active', 'price' => 300, 'description' => 'Has desc']);
 
 		$filter = $this->repository->newSearchFilter();
-		
+
 		$filter->setSearchBy('Model')
 			   ->where('status', 'active')
 			   ->whereIn('price', [100, 200, 300])
@@ -252,7 +253,7 @@ class NewSearchFilterMethodsTest extends TestCase
 		// - "Test Model" (active, price 200, has description, name contains "Model")
 		// - "Model Four" (active, price 300, has description, name contains "Model")
 		$this->assertEquals(2, $results->total());
-		
+
 		// Should be ordered by price desc
 		$items = $results->items();
 		$this->assertEquals(300, $items[0]->price);

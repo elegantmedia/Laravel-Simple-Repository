@@ -256,21 +256,21 @@ abstract class BaseRepository implements RepositoryInterface
 	/**
 	 * {@inheritdoc}
 	 */
-	public function findOrCreate(array $attributes, string $idColumn = 'id'): Model
+	public function findOrCreate(array $searchAttributes, array $additionalAttributes = []): Model
 	{
-		if (!array_key_exists($idColumn, $attributes)) {
-			throw new KeyNotFoundInAttributesException(
-				"Key '{$idColumn}' not found in the given attributes array"
-			);
+		return $this->firstOrCreate($searchAttributes, $additionalAttributes);
+	}
+
+	/**
+	 * {@inheritdoc}
+	 */
+	public function findOrCreateById(int|string|null $id, array $attributes, string $idColumn = 'id'): Model
+	{
+		if ($id === null) {
+			return $this->create($attributes);
 		}
 
-		$model = $this->findByField($idColumn, $attributes[$idColumn]);
-
-		if ($model === null) {
-			$model = $this->create($attributes);
-		}
-
-		return $model;
+		return $this->findOrCreate([$idColumn => $id], $attributes);
 	}
 
 	/**
@@ -290,15 +290,7 @@ abstract class BaseRepository implements RepositoryInterface
 	/**
 	 * {@inheritdoc}
 	 */
-	public function findBy(string $field, mixed $value): ?Model
-	{
-		return $this->findByField($field, $value);
-	}
-
-	/**
-	 * {@inheritdoc}
-	 */
-	public function findByOrFail(string $field, mixed $value): Model
+	public function findByFieldOrFail(string $field, mixed $value): Model
 	{
 		$model = $this->findByField($field, $value);
 
@@ -336,7 +328,7 @@ abstract class BaseRepository implements RepositoryInterface
 	/**
 	 * {@inheritdoc}
 	 */
-	public function findManyBy(string $field, mixed $value): Collection
+	public function findManyByField(string $field, mixed $value): Collection
 	{
 		return $this->newQuery()->where($field, $value)->get();
 	}
@@ -345,9 +337,9 @@ abstract class BaseRepository implements RepositoryInterface
 	 * {@inheritdoc}
 	 */
 	public function findByAttribute(
-		array $attributes,
+		string $whereKey,
 		mixed $whereValue,
-		string $whereKey = 'id'
+		array $attributes
 	): ?Model {
 		$model = $this->findByField($whereKey, $whereValue);
 
@@ -404,24 +396,21 @@ abstract class BaseRepository implements RepositoryInterface
 	/**
 	 * {@inheritdoc}
 	 */
-	public function updateOrInsert(array $attributes, string $idColumn = 'id'): Model
+	public function updateOrInsert(array $searchAttributes, array $values = []): Model
 	{
-		if (!array_key_exists($idColumn, $attributes)) {
-			throw new KeyNotFoundInAttributesException(
-				"Key '{$idColumn}' not found in the given attributes array"
-			);
+		return $this->updateOrCreate($searchAttributes, $values);
+	}
+
+	/**
+	 * {@inheritdoc}
+	 */
+	public function updateOrInsertById(int|string|null $id, array $attributes, string $idColumn = 'id'): Model
+	{
+		if ($id === null) {
+			return $this->create($attributes);
 		}
 
-		$model = $this->findByField($idColumn, $attributes[$idColumn]);
-
-		if ($model === null) {
-			$model = $this->create($attributes);
-		} else {
-			$model->fill($attributes);
-			$model->save();
-		}
-
-		return $model;
+		return $this->updateOrInsert([$idColumn => $id], $attributes);
 	}
 
 	/**
@@ -429,7 +418,13 @@ abstract class BaseRepository implements RepositoryInterface
 	 */
 	public function updateOrInsertByUuid(array $attributes): Model
 	{
-		return $this->updateOrInsert($attributes, 'uuid');
+		if (!array_key_exists('uuid', $attributes)) {
+			throw new KeyNotFoundInAttributesException(
+				"Key 'uuid' not found in the given attributes array"
+			);
+		}
+
+		return $this->updateOrInsertById($attributes['uuid'], $attributes, 'uuid');
 	}
 
 	/*
@@ -437,20 +432,6 @@ abstract class BaseRepository implements RepositoryInterface
 	 | Save/Update
 	 |-----------------------------------------------------------
 	 */
-
-	/**
-	 * {@inheritdoc}
-	 */
-	public function update(int|string $id, array $attributes): bool
-	{
-		$model = $this->find($id);
-
-		if ($model === null) {
-			return false;
-		}
-
-		return $model->fill($attributes)->save();
-	}
 
 	/**
 	 * {@inheritdoc}
@@ -463,7 +444,7 @@ abstract class BaseRepository implements RepositoryInterface
 	/**
 	 * {@inheritdoc}
 	 */
-	public function updateById(array $attributes, int|string $id, string $idColumn = 'id'): bool
+	public function updateById(int|string $id, array $attributes, string $idColumn = 'id'): bool
 	{
 		$model = $this->findByField($idColumn, $id);
 
@@ -712,7 +693,8 @@ abstract class BaseRepository implements RepositoryInterface
 	 * Apply where conditions to a query.
 	 *
 	 * @param Builder $query
-	 * @param array $where
+	 * @param array   $where
+	 *
 	 * @return Builder
 	 */
 	protected function applyWhereConditions(Builder $query, array $where): Builder

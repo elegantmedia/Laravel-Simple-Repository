@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace ElegantMedia\SimpleRepository\Tests\Unit\Repository;
 
-use ElegantMedia\SimpleRepository\Exceptions\KeyNotFoundInAttributesException;
 use ElegantMedia\SimpleRepository\Tests\Fixtures\Models\TestModel;
 use ElegantMedia\SimpleRepository\Tests\Fixtures\Repositories\TestRepository;
 use ElegantMedia\SimpleRepository\Tests\TestCase;
@@ -125,10 +124,10 @@ class FindMethodsTest extends TestCase
 	{
 		$existing = $this->createTestModel(['email' => 'existing@example.com']);
 
-		$model = $this->repository->findOrCreate([
-			'email' => 'existing@example.com',
-			'name' => 'New Name',
-		], 'email');
+		$model = $this->repository->findOrCreate(
+			['email' => 'existing@example.com'],
+			['name' => 'New Name']
+		);
 
 		$this->assertEquals($existing->id, $model->id);
 		$this->assertEquals($existing->name, $model->name); // Name should not be updated
@@ -136,24 +135,39 @@ class FindMethodsTest extends TestCase
 
 	public function test_find_or_create_creates_new_model(): void
 	{
-		$model = $this->repository->findOrCreate([
-			'email' => 'new@example.com',
-			'name' => 'New Model',
-		], 'email');
+		$model = $this->repository->findOrCreate(
+			['email' => 'new@example.com'],
+			['name' => 'New Model']
+		);
 
 		$this->assertTrue($model->exists);
 		$this->assertEquals('new@example.com', $model->email);
 		$this->assertEquals('New Model', $model->name);
 	}
 
-	public function test_find_or_create_throws_exception_when_key_not_found(): void
+	public function test_find_or_create_by_id_creates_when_null(): void
 	{
-		$this->expectException(KeyNotFoundInAttributesException::class);
-		$this->expectExceptionMessage("Key 'email' not found in the given attributes array");
+		$model = $this->repository->findOrCreateById(null, [
+			'email' => 'new@example.com',
+			'name' => 'Created Model',
+		]);
 
-		$this->repository->findOrCreate([
-			'name' => 'Test',
-		], 'email');
+		$this->assertTrue($model->exists);
+		$this->assertEquals('new@example.com', $model->email);
+		$this->assertEquals('Created Model', $model->name);
+	}
+
+	public function test_find_or_create_by_id_returns_existing(): void
+	{
+		$existing = $this->createTestModel();
+
+		$model = $this->repository->findOrCreateById($existing->id, [
+			'email' => 'different@example.com',
+			'name' => 'Different Name',
+		]);
+
+		$this->assertEquals($existing->id, $model->id);
+		$this->assertEquals($existing->email, $model->email); // Should not be updated
 	}
 
 	/**
@@ -187,9 +201,9 @@ class FindMethodsTest extends TestCase
 		]);
 
 		$updated = $this->repository->findByAttribute(
-			['name' => 'Updated Name'],
+			'email',
 			'test@example.com',
-			'email'
+			['name' => 'Updated Name']
 		);
 
 		$this->assertNotNull($updated);
@@ -204,9 +218,9 @@ class FindMethodsTest extends TestCase
 	public function test_find_by_attribute_returns_null_when_not_found(): void
 	{
 		$result = $this->repository->findByAttribute(
-			['name' => 'New Name'],
+			'email',
 			'nonexistent@example.com',
-			'email'
+			['name' => 'New Name']
 		);
 
 		$this->assertNull($result);

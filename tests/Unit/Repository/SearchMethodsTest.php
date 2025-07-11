@@ -18,6 +18,7 @@ class SearchMethodsTest extends TestCase
 
 		$this->repository = new TestRepository();
 	}
+
 	/**
 	 * Test searchByTerm method.
 	 */
@@ -112,10 +113,10 @@ class SearchMethodsTest extends TestCase
 		$query = $this->repository->searchQuery('Searchable');
 
 		$this->assertInstanceOf(Builder::class, $query);
-		
+
 		// We can further modify the query
 		$results = $query->where('status', 'active')->get();
-		
+
 		$this->assertCount(1, $results);
 		$this->assertEquals('Searchable Item', $results->first()->name);
 	}

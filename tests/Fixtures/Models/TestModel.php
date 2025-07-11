@@ -10,7 +10,8 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class TestModel extends Model
 {
-	use HasFactory, SoftDeletes;
+	use HasFactory;
+	use SoftDeletes;
 
 	protected $table = 'test_models';
 
@@ -52,7 +53,8 @@ class TestModel extends Model
 	 * Scope for searching by keyword.
 	 *
 	 * @param \Illuminate\Database\Eloquent\Builder $query
-	 * @param string $keyword
+	 * @param string                                $keyword
+	 *
 	 * @return \Illuminate\Database\Eloquent\Builder
 	 */
 	public function scopeSearchByKeyword($query, $keyword)

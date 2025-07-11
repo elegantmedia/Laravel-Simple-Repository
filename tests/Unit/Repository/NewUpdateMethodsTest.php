@@ -19,7 +19,7 @@ class NewUpdateMethodsTest extends TestCase
 	/**
 	 * Test update method with ID parameter (already tested in CrudMethodsTest).
 	 */
-	
+
 	/**
 	 * Test updateWhere method.
 	 */
@@ -40,10 +40,10 @@ class NewUpdateMethodsTest extends TestCase
 		// Verify updates
 		$pendingCount = TestModel::where('status', 'pending')->count();
 		$processedCount = TestModel::where('status', 'processed')->count();
-		
+
 		$this->assertEquals(0, $pendingCount);
 		$this->assertEquals(2, $processedCount);
-		
+
 		// Verify all processed items have the new price
 		$processed = TestModel::where('status', 'processed')->get();
 		$processed->each(function ($model) {

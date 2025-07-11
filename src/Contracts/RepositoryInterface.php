@@ -83,7 +83,7 @@ interface RepositoryInterface
 	/**
 	 * Cursor paginate the model results.
 	 */
-	public function cursorPaginate(int $perPage = 15): CursorPaginator;
+	public function cursorPaginate(int $perPage = 50): CursorPaginator;
 
 	/**
 	 * Search models using the provided filter.
@@ -102,7 +102,7 @@ interface RepositoryInterface
 	/**
 	 * Search models with pagination.
 	 */
-	public function searchPaginated(string $term, int $perPage = 20): LengthAwarePaginator;
+	public function searchPaginated(string $term, int $perPage = 50): LengthAwarePaginator;
 
 	/**
 	 * Get a search query builder.
@@ -144,9 +144,17 @@ interface RepositoryInterface
 	/**
 	 * Find or create a model with the given attributes.
 	 *
+	 * @param array<string, mixed> $searchAttributes
+	 * @param array<string, mixed> $additionalAttributes
+	 */
+	public function findOrCreate(array $searchAttributes, array $additionalAttributes = []): Model;
+
+	/**
+	 * Find or create a model by ID.
+	 *
 	 * @param array<string, mixed> $attributes
 	 */
-	public function findOrCreate(array $attributes, string $idColumn = 'id'): Model;
+	public function findOrCreateById(int|string|null $id, array $attributes, string $idColumn = 'id'): Model;
 
 	/**
 	 * Find a model by its primary key or throw an exception.
@@ -156,16 +164,11 @@ interface RepositoryInterface
 	public function findOrFail(int|string $id): Model;
 
 	/**
-	 * Find a model by a specific field value (alias for findByField).
-	 */
-	public function findBy(string $field, mixed $value): ?Model;
-
-	/**
 	 * Find a model by a specific field value or throw an exception.
 	 *
 	 * @throws \Illuminate\Database\Eloquent\ModelNotFoundException
 	 */
-	public function findByOrFail(string $field, mixed $value): Model;
+	public function findByFieldOrFail(string $field, mixed $value): Model;
 
 	/**
 	 * Find a model by its primary key including soft deleted records.
@@ -191,7 +194,7 @@ interface RepositoryInterface
 	 *
 	 * @return Collection<int, Model>
 	 */
-	public function findManyBy(string $field, mixed $value): Collection;
+	public function findManyByField(string $field, mixed $value): Collection;
 
 	/**
 	 * Find and update model attributes.
@@ -199,9 +202,9 @@ interface RepositoryInterface
 	 * @param array<string, mixed> $attributes
 	 */
 	public function findByAttribute(
-		array $attributes,
+		string $whereKey,
 		mixed $whereValue,
-		string $whereKey = 'id'
+		array $attributes
 	): ?Model;
 
 	/*
@@ -243,9 +246,17 @@ interface RepositoryInterface
 	/**
 	 * Update or insert a model.
 	 *
+	 * @param array<string, mixed> $searchAttributes
+	 * @param array<string, mixed> $values
+	 */
+	public function updateOrInsert(array $searchAttributes, array $values = []): Model;
+
+	/**
+	 * Update or insert a model by ID.
+	 *
 	 * @param array<string, mixed> $attributes
 	 */
-	public function updateOrInsert(array $attributes, string $idColumn = 'id'): Model;
+	public function updateOrInsertById(int|string|null $id, array $attributes, string $idColumn = 'id'): Model;
 
 	/**
 	 * Update or insert a model by UUID.
@@ -261,13 +272,6 @@ interface RepositoryInterface
 	 */
 
 	/**
-	 * Update a model by ID.
-	 *
-	 * @param array<string, mixed> $attributes
-	 */
-	public function update(int|string $id, array $attributes): bool;
-
-	/**
 	 * Update a model instance.
 	 *
 	 * @param array<string, mixed> $attributes
@@ -279,7 +283,7 @@ interface RepositoryInterface
 	 *
 	 * @param array<string, mixed> $attributes
 	 */
-	public function updateById(array $attributes, int|string $id, string $idColumn = 'id'): bool;
+	public function updateById(int|string $id, array $attributes, string $idColumn = 'id'): bool;
 
 	/**
 	 * Update models matching the given conditions.

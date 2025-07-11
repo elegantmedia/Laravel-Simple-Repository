@@ -16,6 +16,7 @@ class NewCreateMethodsTest extends TestCase
 
 		$this->repository = new TestRepository();
 	}
+
 	/**
 	 * Test createMany method.
 	 */

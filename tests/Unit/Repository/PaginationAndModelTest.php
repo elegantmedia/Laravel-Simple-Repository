@@ -18,6 +18,7 @@ class PaginationAndModelTest extends TestCase
 
 		$this->repository = new TestRepository();
 	}
+
 	/**
 	 * Test cursorPaginate method.
 	 */

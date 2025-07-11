@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace ElegantMedia\SimpleRepository\Tests\Unit\Repository;
 
-use ElegantMedia\SimpleRepository\Exceptions\KeyNotFoundInAttributesException;
 use ElegantMedia\SimpleRepository\Tests\Fixtures\Models\TestModel;
 use ElegantMedia\SimpleRepository\Tests\Fixtures\Repositories\TestRepository;
 use ElegantMedia\SimpleRepository\Tests\TestCase;
@@ -71,7 +70,7 @@ class CrudMethodsTest extends TestCase
 		$model = $this->createTestModel();
 		$originalName = $model->name;
 
-		$result = $this->repository->update($model->id, [
+		$result = $this->repository->updateById($model->id, [
 			'name' => 'Updated Name',
 			'status' => 'inactive',
 		]);
@@ -88,10 +87,10 @@ class CrudMethodsTest extends TestCase
 	{
 		$model = $this->createTestModel();
 
-		$result = $this->repository->update($model->id, ['name' => 'Test Update']);
+		$result = $this->repository->updateById($model->id, ['name' => 'Test Update']);
 
 		$this->assertTrue($result);
-		
+
 		// Verify the update
 		$fresh = $this->repository->find($model->id);
 		$this->assertEquals('Test Update', $fresh->name);
@@ -124,8 +123,8 @@ class CrudMethodsTest extends TestCase
 		$model = $this->createTestModel();
 
 		$result = $this->repository->updateById(
-			['name' => 'Updated By ID', 'price' => 299.99],
-			$model->id
+			$model->id,
+			['name' => 'Updated By ID', 'price' => 299.99]
 		);
 
 		$this->assertTrue($result);
@@ -138,7 +137,7 @@ class CrudMethodsTest extends TestCase
 
 	public function test_update_by_id_returns_false_when_not_found(): void
 	{
-		$result = $this->repository->updateById(['name' => 'Test'], 999);
+		$result = $this->repository->updateById(999, ['name' => 'Test']);
 
 		$this->assertFalse($result);
 	}
@@ -149,8 +148,8 @@ class CrudMethodsTest extends TestCase
 		$model = $this->createTestModel(['uuid' => $uuid]);
 
 		$result = $this->repository->updateById(
-			['name' => 'Updated By UUID'],
 			$uuid,
+			['name' => 'Updated By UUID'],
 			'uuid'
 		);
 
@@ -167,11 +166,10 @@ class CrudMethodsTest extends TestCase
 	{
 		$model = $this->createTestModel(['email' => 'existing@example.com']);
 
-		$result = $this->repository->updateOrInsert([
-			'email' => 'existing@example.com',
-			'name' => 'Updated Name',
-			'status' => 'updated',
-		], 'email');
+		$result = $this->repository->updateOrInsert(
+			['email' => 'existing@example.com'],
+			['name' => 'Updated Name', 'status' => 'updated']
+		);
 
 		$this->assertEquals($model->id, $result->id);
 		$this->assertEquals('Updated Name', $result->name);
@@ -180,21 +178,40 @@ class CrudMethodsTest extends TestCase
 
 	public function test_update_or_insert_creates_new_model(): void
 	{
-		$result = $this->repository->updateOrInsert([
-			'email' => 'new@example.com',
-			'name' => 'New Model',
-		], 'email');
+		$result = $this->repository->updateOrInsert(
+			['email' => 'new@example.com'],
+			['name' => 'New Model']
+		);
 
 		$this->assertTrue($result->exists);
 		$this->assertEquals('new@example.com', $result->email);
 		$this->assertEquals('New Model', $result->name);
 	}
 
-	public function test_update_or_insert_throws_exception_when_key_not_found(): void
+	public function test_update_or_insert_by_id_creates_when_null(): void
 	{
-		$this->expectException(KeyNotFoundInAttributesException::class);
+		$model = $this->repository->updateOrInsertById(null, [
+			'email' => 'new@example.com',
+			'name' => 'Created Model',
+		]);
 
-		$this->repository->updateOrInsert(['name' => 'Test'], 'email');
+		$this->assertTrue($model->exists);
+		$this->assertEquals('new@example.com', $model->email);
+		$this->assertEquals('Created Model', $model->name);
+	}
+
+	public function test_update_or_insert_by_id_updates_existing(): void
+	{
+		$existing = $this->createTestModel();
+
+		$result = $this->repository->updateOrInsertById($existing->id, [
+			'name' => 'Updated Name',
+			'status' => 'updated',
+		]);
+
+		$this->assertEquals($existing->id, $result->id);
+		$this->assertEquals('Updated Name', $result->name);
+		$this->assertEquals('updated', $result->status);
 	}
 
 	/**

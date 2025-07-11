@@ -16,6 +16,7 @@ class AggregateMethodsTest extends TestCase
 
 		$this->repository = new TestRepository();
 	}
+
 	/**
 	 * Test sum method.
 	 */

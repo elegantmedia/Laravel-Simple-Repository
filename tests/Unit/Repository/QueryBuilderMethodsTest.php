@@ -3,10 +3,8 @@
 namespace ElegantMedia\SimpleRepository\Tests\Unit\Repository;
 
 use ElegantMedia\SimpleRepository\Tests\Fixtures\Models\TestModel;
-use ElegantMedia\SimpleRepository\Tests\Fixtures\Models\TestRelatedModel;
 use ElegantMedia\SimpleRepository\Tests\Fixtures\Repositories\TestRepository;
 use ElegantMedia\SimpleRepository\Tests\TestCase;
-use Illuminate\Database\Eloquent\Builder;
 
 class QueryBuilderMethodsTest extends TestCase
 {
@@ -18,6 +16,7 @@ class QueryBuilderMethodsTest extends TestCase
 
 		$this->repository = new TestRepository();
 	}
+
 	/**
 	 * Test whereIn method.
 	 */
@@ -81,7 +80,7 @@ class QueryBuilderMethodsTest extends TestCase
 		// Create test models
 		$model1 = $this->createTestModel(['name' => 'Model 1']);
 		$model2 = $this->createTestModel(['name' => 'Model 2']);
-		
+
 		// Add related models
 		$model1->relatedModels()->create(['name' => 'Related 1', 'status' => 'active']);
 		$model1->relatedModels()->create(['name' => 'Related 2', 'status' => 'inactive']);
@@ -89,7 +88,7 @@ class QueryBuilderMethodsTest extends TestCase
 
 		// Test whereHas
 		$results = $this->repository->whereHas('relatedModels')->get();
-		
+
 		$this->assertCount(1, $results);
 		$this->assertEquals('Model 1', $results->first()->name);
 	}
@@ -99,7 +98,7 @@ class QueryBuilderMethodsTest extends TestCase
 		// Create test models
 		$model1 = $this->createTestModel(['name' => 'Model 1']);
 		$model2 = $this->createTestModel(['name' => 'Model 2']);
-		
+
 		// Add related models with different statuses
 		$model1->relatedModels()->create(['name' => 'Related 1', 'status' => 'active']);
 		$model2->relatedModels()->create(['name' => 'Related 2', 'status' => 'inactive']);
@@ -108,7 +107,7 @@ class QueryBuilderMethodsTest extends TestCase
 		$results = $this->repository->whereHas('relatedModels', function ($query) {
 			$query->where('status', 'active');
 		})->get();
-		
+
 		$this->assertCount(1, $results);
 		$this->assertEquals('Model 1', $results->first()->name);
 	}
@@ -121,13 +120,13 @@ class QueryBuilderMethodsTest extends TestCase
 		// Create test models
 		$model1 = $this->createTestModel(['name' => 'Model 1']);
 		$model2 = $this->createTestModel(['name' => 'Model 2']);
-		
+
 		// Only model1 has related models
 		$model1->relatedModels()->create(['name' => 'Related 1']);
 
 		// Test whereDoesntHave
 		$results = $this->repository->whereDoesntHave('relatedModels')->get();
-		
+
 		$this->assertCount(1, $results);
 		$this->assertEquals('Model 2', $results->first()->name);
 	}
@@ -141,19 +140,19 @@ class QueryBuilderMethodsTest extends TestCase
 		$model1 = $this->createTestModel(['name' => 'Model 1']);
 		$model2 = $this->createTestModel(['name' => 'Model 2']);
 		$model3 = $this->createTestModel(['name' => 'Model 3']);
-		
+
 		// Add different numbers of related models
 		$model1->relatedModels()->create(['name' => 'Related 1']);
-		
+
 		$model2->relatedModels()->create(['name' => 'Related 2']);
 		$model2->relatedModels()->create(['name' => 'Related 3']);
-		
+
 		// Model 3 has no related models
 
 		// Test has with default (at least 1)
 		$results = $this->repository->has('relatedModels')->get();
 		$this->assertCount(2, $results);
-		
+
 		// Test has with specific count
 		$results = $this->repository->has('relatedModels', '>=', 2)->get();
 		$this->assertCount(1, $results);
@@ -218,7 +217,7 @@ class QueryBuilderMethodsTest extends TestCase
 
 		$this->assertNotNull($result->id);
 		$this->assertEquals('Selected Model', $result->name);
-		
+
 		// These columns weren't selected, so they should be null
 		$this->assertNull($result->email);
 		$this->assertNull($result->description);

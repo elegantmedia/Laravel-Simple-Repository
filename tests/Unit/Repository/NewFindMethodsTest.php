@@ -2,12 +2,10 @@
 
 namespace ElegantMedia\SimpleRepository\Tests\Unit\Repository;
 
-use ElegantMedia\SimpleRepository\Exceptions\RepositoryException;
 use ElegantMedia\SimpleRepository\Tests\Fixtures\Models\TestModel;
 use ElegantMedia\SimpleRepository\Tests\Fixtures\Repositories\TestRepository;
 use ElegantMedia\SimpleRepository\Tests\TestCase;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
-use Illuminate\Support\Str;
 
 class NewFindMethodsTest extends TestCase
 {
@@ -19,45 +17,25 @@ class NewFindMethodsTest extends TestCase
 
 		$this->repository = new TestRepository();
 	}
-	/**
-	 * Test findBy method.
-	 */
-	public function test_find_by_returns_model_when_exists(): void
-	{
-		$model = $this->createTestModel(['email' => 'findby@example.com']);
-
-		$result = $this->repository->findBy('email', 'findby@example.com');
-
-		$this->assertInstanceOf(TestModel::class, $result);
-		$this->assertEquals($model->id, $result->id);
-		$this->assertEquals('findby@example.com', $result->email);
-	}
-
-	public function test_find_by_returns_null_when_not_exists(): void
-	{
-		$result = $this->repository->findBy('email', 'notfound@example.com');
-
-		$this->assertNull($result);
-	}
 
 	/**
-	 * Test findByOrFail method.
+	 * Test findByFieldOrFail method.
 	 */
-	public function test_find_by_or_fail_returns_model_when_exists(): void
+	public function test_find_by_field_or_fail_returns_model_when_exists(): void
 	{
 		$model = $this->createTestModel(['name' => 'Unique Name']);
 
-		$result = $this->repository->findByOrFail('name', 'Unique Name');
+		$result = $this->repository->findByFieldOrFail('name', 'Unique Name');
 
 		$this->assertInstanceOf(TestModel::class, $result);
 		$this->assertEquals($model->id, $result->id);
 	}
 
-	public function test_find_by_or_fail_throws_exception_when_not_exists(): void
+	public function test_find_by_field_or_fail_throws_exception_when_not_exists(): void
 	{
 		$this->expectException(ModelNotFoundException::class);
 
-		$this->repository->findByOrFail('name', 'Non Existent');
+		$this->repository->findByFieldOrFail('name', 'Non Existent');
 	}
 
 	/**
@@ -68,7 +46,7 @@ class NewFindMethodsTest extends TestCase
 		// Create a model with soft delete capability
 		$model = $this->createTestModel();
 		$modelId = $model->id;
-		
+
 		// Soft delete it
 		$model->delete();
 
@@ -77,7 +55,7 @@ class NewFindMethodsTest extends TestCase
 
 		// Should find with findWithTrashed
 		$result = $this->repository->findWithTrashed($modelId);
-		
+
 		$this->assertInstanceOf(TestModel::class, $result);
 		$this->assertEquals($modelId, $result->id);
 		$this->assertNotNull($result->deleted_at);
@@ -101,7 +79,7 @@ class NewFindMethodsTest extends TestCase
 	{
 		$model = $this->createTestModel();
 		$modelId = $model->id;
-		
+
 		// Should not find non-deleted model
 		$result = $this->repository->findOnlyTrashed($modelId);
 		$this->assertNull($result);
@@ -111,7 +89,7 @@ class NewFindMethodsTest extends TestCase
 
 		// Should find after deletion
 		$result = $this->repository->findOnlyTrashed($modelId);
-		
+
 		$this->assertInstanceOf(TestModel::class, $result);
 		$this->assertEquals($modelId, $result->id);
 		$this->assertNotNull($result->deleted_at);
@@ -141,15 +119,15 @@ class NewFindMethodsTest extends TestCase
 	}
 
 	/**
-	 * Test findManyBy method.
+	 * Test findManyByField method.
 	 */
-	public function test_find_many_by_returns_collection_matching_value(): void
+	public function test_find_many_by_field_returns_collection_matching_value(): void
 	{
 		$this->createTestModel(['status' => 'active']);
 		$this->createTestModel(['status' => 'active']);
 		$this->createTestModel(['status' => 'inactive']);
 
-		$results = $this->repository->findManyBy('status', 'active');
+		$results = $this->repository->findManyByField('status', 'active');
 
 		$this->assertCount(2, $results);
 		$results->each(function ($model) {
@@ -157,11 +135,11 @@ class NewFindMethodsTest extends TestCase
 		});
 	}
 
-	public function test_find_many_by_returns_empty_collection_when_none_match(): void
+	public function test_find_many_by_field_returns_empty_collection_when_none_match(): void
 	{
 		$this->createTestModel(['status' => 'active']);
 
-		$results = $this->repository->findManyBy('status', 'pending');
+		$results = $this->repository->findManyByField('status', 'pending');
 
 		$this->assertCount(0, $results);
 	}
