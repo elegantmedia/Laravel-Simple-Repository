@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace ElegantMedia\SimpleRepository\Tests\Unit;
+namespace ElegantMedia\SimpleRepository\Tests\Unit\Core\Utilities;
 
 use ElegantMedia\SimpleRepository\Exceptions\InvalidArgumentException;
 use ElegantMedia\SimpleRepository\Exceptions\KeyNotFoundInAttributesException;

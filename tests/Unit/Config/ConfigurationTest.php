@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace ElegantMedia\SimpleRepository\Tests\Unit;
+namespace ElegantMedia\SimpleRepository\Tests\Unit\Config;
 
 use ElegantMedia\SimpleRepository\Tests\TestCase;
 
@@ -10,13 +10,13 @@ class ConfigurationTest extends TestCase
 {
 	public function test_configuration_file_exists(): void
 	{
-		$configPath = __DIR__ . '/../../config/simple-repository.php';
+		$configPath = __DIR__ . '/../../../config/simple-repository.php';
 		$this->assertFileExists($configPath);
 	}
 
 	public function test_configuration_has_required_keys(): void
 	{
-		$config = require __DIR__ . '/../../config/simple-repository.php';
+		$config = require __DIR__ . '/../../../config/simple-repository.php';
 
 		$this->assertIsArray($config);
 
