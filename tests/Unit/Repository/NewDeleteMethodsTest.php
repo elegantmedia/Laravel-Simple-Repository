@@ -26,7 +26,7 @@ class NewDeleteMethodsTest extends TestCase
 		$model2 = $this->createTestModel(['name' => 'Delete 2']);
 		$model3 = $this->createTestModel(['name' => 'Keep Me']);
 
-		$result = $this->repository->deleteMany([$model1->id, $model2->id]);
+		$result = $this->repository->deleteManyByIds([$model1->id, $model2->id]);
 
 		$this->assertEquals(2, $result);
 
@@ -43,7 +43,7 @@ class NewDeleteMethodsTest extends TestCase
 	{
 		$model = $this->createTestModel();
 
-		$result = $this->repository->deleteMany([$model->id, 999, 1000]);
+		$result = $this->repository->deleteManyByIds([$model->id, 999, 1000]);
 
 		$this->assertEquals(1, $result);
 		$this->assertNull($this->repository->find($model->id));
@@ -54,7 +54,7 @@ class NewDeleteMethodsTest extends TestCase
 	{
 		$this->createTestModel();
 
-		$result = $this->repository->deleteMany([]);
+		$result = $this->repository->deleteManyByIds([]);
 
 		$this->assertEquals(0, $result);
 		$this->assertEquals(1, TestModel::count());

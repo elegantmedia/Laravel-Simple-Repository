@@ -20,7 +20,7 @@ class PaginationAndModelTest extends TestCase
 	}
 
 	/**
-	 * Test cursorPaginate method.
+	 * Test cursor pagination through query builder.
 	 */
 	public function test_cursor_paginate_returns_cursor_paginator(): void
 	{
@@ -29,7 +29,9 @@ class PaginationAndModelTest extends TestCase
 			$this->createTestModel(['name' => "Model {$i}"]);
 		}
 
-		$results = $this->repository->cursorPaginate(10);
+		// Use newQuery to access cursor pagination
+		$query = $this->repository->newQuery();
+		$results = $query->cursorPaginate(10);
 
 		$this->assertInstanceOf(CursorPaginator::class, $results);
 		$this->assertEquals(10, $results->perPage());
@@ -43,7 +45,8 @@ class PaginationAndModelTest extends TestCase
 			$this->createTestModel(['name' => "Item {$i}"]);
 		}
 
-		$results = $this->repository->cursorPaginate(5);
+		$query = $this->repository->newQuery();
+		$results = $query->cursorPaginate(5);
 
 		$this->assertEquals(5, $results->perPage());
 		$this->assertCount(5, $results->items());
@@ -56,7 +59,8 @@ class PaginationAndModelTest extends TestCase
 			$this->createTestModel();
 		}
 
-		$results = $this->repository->cursorPaginate();
+		$query = $this->repository->newQuery();
+		$results = $query->cursorPaginate();
 
 		$this->assertEquals(15, $results->perPage());
 		$this->assertCount(15, $results->items());
@@ -72,9 +76,8 @@ class PaginationAndModelTest extends TestCase
 			$this->createTestModel(['status' => 'inactive']);
 		}
 
-		$results = $this->repository
-			->where('status', 'active')
-			->cursorPaginate(5);
+		$query = $this->repository->newQuery();
+		$results = $query->where('status', 'active')->cursorPaginate(5);
 
 		$this->assertCount(5, $results->items());
 		foreach ($results->items() as $item) {
@@ -89,9 +92,8 @@ class PaginationAndModelTest extends TestCase
 		$this->createTestModel(['name' => 'Second', 'created_at' => Carbon::now()->subDays(2)]);
 		$this->createTestModel(['name' => 'Third', 'created_at' => Carbon::now()->subDays(1)]);
 
-		$results = $this->repository
-			->orderBy('created_at', 'asc')
-			->cursorPaginate(2);
+		$query = $this->repository->newQuery();
+		$results = $query->orderBy('created_at', 'asc')->cursorPaginate(2);
 
 		$items = $results->items();
 		$this->assertEquals('First', $items[0]->name);
@@ -143,25 +145,29 @@ class PaginationAndModelTest extends TestCase
 	}
 
 	/**
-	 * Test with method (already exists, adding comprehensive test).
+	 * Test with method through filter.
 	 */
 	public function test_with_method_for_eager_loading(): void
 	{
 		$this->createTestModel();
 
-		// Test single relationship
-		$query = $this->repository->with('relation');
-		$this->assertInstanceOf(get_class($this->repository), $query);
+		// Test single relationship through filter
+		$filter = $this->repository->newFilter();
+		$filter->with('relatedModels');
+		$filter->setPaginate(false);
+		$this->assertInstanceOf(get_class($filter), $filter);
 
 		// Test multiple relationships as array
-		$query = $this->repository->with(['relation1', 'relation2']);
-		$this->assertInstanceOf(get_class($this->repository), $query);
+		$filter2 = $this->repository->newFilter();
+		$filter2->with(['relatedModels', 'activeRelatedModels']);
+		$this->assertInstanceOf(get_class($filter2), $filter2);
 
 		// Test chaining
-		$results = $this->repository
-			->with('relation')
+		$filter3 = $this->repository->newFilter();
+		$filter3->with('relatedModels')
 			->where('status', 'active')
-			->get();
+			->setPaginate(false);
+		$results = $this->repository->search($filter3);
 
 		$this->assertNotNull($results);
 	}

@@ -6,6 +6,9 @@ use ElegantMedia\SimpleRepository\Tests\Fixtures\Models\TestModel;
 use ElegantMedia\SimpleRepository\Tests\Fixtures\Repositories\TestRepository;
 use ElegantMedia\SimpleRepository\Tests\TestCase;
 
+/**
+ * Tests for query builder methods that are now accessed through filters.
+ */
 class QueryBuilderMethodsTest extends TestCase
 {
 	private TestRepository $repository;
@@ -18,7 +21,7 @@ class QueryBuilderMethodsTest extends TestCase
 	}
 
 	/**
-	 * Test whereIn method.
+	 * Test whereIn method through filter.
 	 */
 	public function test_where_in_filters_by_values(): void
 	{
@@ -27,7 +30,11 @@ class QueryBuilderMethodsTest extends TestCase
 		$model3 = $this->createTestModel(['status' => 'inactive']);
 		$model4 = $this->createTestModel(['status' => 'archived']);
 
-		$results = $this->repository->whereIn('status', ['active', 'pending'])->get();
+		$filter = $this->repository->newFilter();
+		$filter->whereIn('status', ['active', 'pending']);
+		$filter->setPaginate(false);
+
+		$results = $this->repository->search($filter);
 
 		$this->assertCount(2, $results);
 		$statuses = $results->pluck('status')->toArray();
@@ -39,13 +46,17 @@ class QueryBuilderMethodsTest extends TestCase
 	{
 		$this->createTestModel(['price' => 100]);
 
-		$results = $this->repository->whereIn('price', [200, 300])->get();
+		$filter = $this->repository->newFilter();
+		$filter->whereIn('price', [200, 300]);
+		$filter->setPaginate(false);
+
+		$results = $this->repository->search($filter);
 
 		$this->assertCount(0, $results);
 	}
 
 	/**
-	 * Test where method chaining.
+	 * Test where method chaining through filter.
 	 */
 	public function test_where_method_chains_correctly(): void
 	{
@@ -53,10 +64,12 @@ class QueryBuilderMethodsTest extends TestCase
 		$this->createTestModel(['status' => 'active', 'price' => 200]);
 		$this->createTestModel(['status' => 'inactive', 'price' => 150]);
 
-		$results = $this->repository
-			->where('status', 'active')
+		$filter = $this->repository->newFilter();
+		$filter->where('status', 'active')
 			->where('price', '>', 150)
-			->get();
+			->setPaginate(false);
+
+		$results = $this->repository->search($filter);
 
 		$this->assertCount(1, $results);
 		$this->assertEquals(200, $results->first()->price);
@@ -66,14 +79,18 @@ class QueryBuilderMethodsTest extends TestCase
 	{
 		$this->createTestModel(['name' => 'Test Product']);
 
-		$result = $this->repository->where('name', 'Test Product')->first();
+		$filter = $this->repository->newFilter();
+		$filter->where('name', 'Test Product');
+		$filter->setPaginate(false);
 
-		$this->assertNotNull($result);
-		$this->assertEquals('Test Product', $result->name);
+		$results = $this->repository->search($filter);
+
+		$this->assertCount(1, $results);
+		$this->assertEquals('Test Product', $results->first()->name);
 	}
 
 	/**
-	 * Test whereHas method.
+	 * Test whereHas method through filter.
 	 */
 	public function test_where_has_filters_by_relationship(): void
 	{
@@ -86,8 +103,12 @@ class QueryBuilderMethodsTest extends TestCase
 		$model1->relatedModels()->create(['name' => 'Related 2', 'status' => 'inactive']);
 		// Model 2 has no related models
 
-		// Test whereHas
-		$results = $this->repository->whereHas('relatedModels')->get();
+		// Test whereHas through filter
+		$filter = $this->repository->newFilter();
+		$filter->whereHas('relatedModels');
+		$filter->setPaginate(false);
+
+		$results = $this->repository->search($filter);
 
 		$this->assertCount(1, $results);
 		$this->assertEquals('Model 1', $results->first()->name);
@@ -103,17 +124,21 @@ class QueryBuilderMethodsTest extends TestCase
 		$model1->relatedModels()->create(['name' => 'Related 1', 'status' => 'active']);
 		$model2->relatedModels()->create(['name' => 'Related 2', 'status' => 'inactive']);
 
-		// Test whereHas with callback for active related models
-		$results = $this->repository->whereHas('relatedModels', function ($query) {
+		// Test whereHas with callback through filter
+		$filter = $this->repository->newFilter();
+		$filter->whereHas('relatedModels', function ($query) {
 			$query->where('status', 'active');
-		})->get();
+		});
+		$filter->setPaginate(false);
+
+		$results = $this->repository->search($filter);
 
 		$this->assertCount(1, $results);
 		$this->assertEquals('Model 1', $results->first()->name);
 	}
 
 	/**
-	 * Test whereDoesntHave method.
+	 * Test whereDoesntHave method through query builder.
 	 */
 	public function test_where_doesnt_have_filters_without_relationship(): void
 	{
@@ -124,15 +149,16 @@ class QueryBuilderMethodsTest extends TestCase
 		// Only model1 has related models
 		$model1->relatedModels()->create(['name' => 'Related 1']);
 
-		// Test whereDoesntHave
-		$results = $this->repository->whereDoesntHave('relatedModels')->get();
+		// Since whereDoesntHave is not available in filter, use direct query
+		$query = $this->repository->newQuery();
+		$results = $query->whereDoesntHave('relatedModels')->get();
 
 		$this->assertCount(1, $results);
 		$this->assertEquals('Model 2', $results->first()->name);
 	}
 
 	/**
-	 * Test has method.
+	 * Test has method through query builder.
 	 */
 	public function test_has_filters_by_relationship_count(): void
 	{
@@ -149,18 +175,20 @@ class QueryBuilderMethodsTest extends TestCase
 
 		// Model 3 has no related models
 
-		// Test has with default (at least 1)
-		$results = $this->repository->has('relatedModels')->get();
+		// Since has() is not available in filter, use direct query
+		$query = $this->repository->newQuery();
+		$results = $query->has('relatedModels')->get();
 		$this->assertCount(2, $results);
 
 		// Test has with specific count
-		$results = $this->repository->has('relatedModels', '>=', 2)->get();
+		$query2 = $this->repository->newQuery();
+		$results = $query2->has('relatedModels', '>=', 2)->get();
 		$this->assertCount(1, $results);
 		$this->assertEquals('Model 2', $results->first()->name);
 	}
 
 	/**
-	 * Test orderBy method.
+	 * Test orderBy method through filter.
 	 */
 	public function test_order_by_sorts_results(): void
 	{
@@ -168,7 +196,11 @@ class QueryBuilderMethodsTest extends TestCase
 		$this->createTestModel(['name' => 'Alice', 'price' => 100]);
 		$this->createTestModel(['name' => 'Bob', 'price' => 150]);
 
-		$results = $this->repository->orderBy('name')->get();
+		$filter = $this->repository->newFilter();
+		$filter->orderBy('name');
+		$filter->setPaginate(false);
+
+		$results = $this->repository->search($filter);
 
 		$this->assertEquals('Alice', $results[0]->name);
 		$this->assertEquals('Bob', $results[1]->name);
@@ -181,7 +213,11 @@ class QueryBuilderMethodsTest extends TestCase
 		$this->createTestModel(['price' => 300]);
 		$this->createTestModel(['price' => 200]);
 
-		$results = $this->repository->orderBy('price', 'desc')->get();
+		$filter = $this->repository->newFilter();
+		$filter->orderBy('price', 'desc');
+		$filter->setPaginate(false);
+
+		$results = $this->repository->search($filter);
 
 		$this->assertEquals(300, $results[0]->price);
 		$this->assertEquals(200, $results[1]->price);
@@ -189,7 +225,7 @@ class QueryBuilderMethodsTest extends TestCase
 	}
 
 	/**
-	 * Test limit method.
+	 * Test limit method through query builder.
 	 */
 	public function test_limit_restricts_results(): void
 	{
@@ -197,13 +233,15 @@ class QueryBuilderMethodsTest extends TestCase
 			$this->createTestModel(['name' => "Model {$i}"]);
 		}
 
-		$results = $this->repository->limit(3)->get();
+		// Since limit is not available in filter, use direct query
+		$query = $this->repository->newQuery();
+		$results = $query->limit(3)->get();
 
 		$this->assertCount(3, $results);
 	}
 
 	/**
-	 * Test select method.
+	 * Test select method through query builder.
 	 */
 	public function test_select_limits_columns(): void
 	{
@@ -213,7 +251,9 @@ class QueryBuilderMethodsTest extends TestCase
 			'description' => 'Long description text',
 		]);
 
-		$result = $this->repository->select(['id', 'name'])->first();
+		// Since select is not available in filter, use direct query
+		$query = $this->repository->newQuery();
+		$result = $query->select(['id', 'name'])->first();
 
 		$this->assertNotNull($result->id);
 		$this->assertEquals('Selected Model', $result->name);
@@ -227,7 +267,9 @@ class QueryBuilderMethodsTest extends TestCase
 	{
 		$this->createTestModel();
 
-		$result = $this->repository->select(['id', 'name', 'status', 'price'])->first();
+		// Since select is not available in filter, use direct query
+		$query = $this->repository->newQuery();
+		$result = $query->select(['id', 'name', 'status', 'price'])->first();
 
 		$this->assertNotNull($result->id);
 		$this->assertNotNull($result->name);

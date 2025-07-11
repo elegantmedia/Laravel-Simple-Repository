@@ -16,6 +16,9 @@ class SearchFilter implements FilterableInterface
 
 	protected bool $shouldPaginate = true;
 
+	/** @var array<array{type: string, args: array}> */
+	protected array $conditions = [];
+
 	protected int $perPage = 50;
 
 	protected ?string $keyword = null;
@@ -23,30 +26,6 @@ class SearchFilter implements FilterableInterface
 	protected string $sortBy = 'created_at';
 
 	protected string $sortDirection = 'desc';
-
-	/** @var array<string> */
-	protected array $with = [];
-
-	/** @var array<array{field: string, operator: mixed, value: mixed}> */
-	protected array $wheres = [];
-
-	/** @var array<array{relation: string, callback: callable}> */
-	protected array $whereHas = [];
-
-	/** @var array<array{field: string, values: array}> */
-	protected array $whereIns = [];
-
-	/** @var array<string> */
-	protected array $whereNulls = [];
-
-	/** @var array<string> */
-	protected array $whereNotNulls = [];
-
-	/** @var array<array{field: string, range: array}> */
-	protected array $whereBetweens = [];
-
-	/** @var array<array{field: string, direction: string}> */
-	protected array $orderBys = [];
 
 	protected ?Request $request = null;
 
@@ -98,53 +77,20 @@ class SearchFilter implements FilterableInterface
 	 */
 	public function apply(Builder $query): Builder
 	{
+		// Apply all stored conditions
+		foreach ($this->conditions as $condition) {
+			$method = $condition['type'];
+			$args = $condition['args'];
+			$query->{$method}(...$args);
+		}
+
 		// Apply search keyword if model is searchable
 		if ($this->keyword !== null && method_exists($query->getModel(), 'scopeSearchByKeyword')) {
 			$query->searchByKeyword($this->keyword);
 		}
 
-		// Apply eager loading
-		if (!empty($this->with)) {
-			$query->with($this->with);
-		}
-
-		// Apply where conditions
-		foreach ($this->wheres as $where) {
-			$query->where($where['field'], $where['operator'], $where['value']);
-		}
-
-		// Apply whereHas conditions
-		foreach ($this->whereHas as $whereHas) {
-			$query->whereHas($whereHas['relation'], $whereHas['callback']);
-		}
-
-		// Apply whereIn conditions
-		foreach ($this->whereIns as $whereIn) {
-			$query->whereIn($whereIn['field'], $whereIn['values']);
-		}
-
-		// Apply whereNull conditions
-		foreach ($this->whereNulls as $field) {
-			$query->whereNull($field);
-		}
-
-		// Apply whereNotNull conditions
-		foreach ($this->whereNotNulls as $field) {
-			$query->whereNotNull($field);
-		}
-
-		// Apply whereBetween conditions
-		foreach ($this->whereBetweens as $whereBetween) {
-			$query->whereBetween($whereBetween['field'], $whereBetween['range']);
-		}
-
-		// Apply sorting
-		if (!empty($this->orderBys)) {
-			foreach ($this->orderBys as $orderBy) {
-				$query->orderBy($orderBy['field'], $orderBy['direction']);
-			}
-		} else {
-			// Fallback to original sorting behavior
+		// Apply default sorting if no orderBy has been set
+		if (empty($query->getQuery()->orders) && empty($this->conditions)) {
 			$query->orderBy($this->sortBy, $this->sortDirection);
 		}
 
@@ -154,7 +100,7 @@ class SearchFilter implements FilterableInterface
 	/**
 	 * {@inheritdoc}
 	 */
-	public function paginate(bool $paginate = true): self
+	public function setPaginate(bool $paginate = true): self
 	{
 		$this->shouldPaginate = $paginate;
 
@@ -243,58 +189,34 @@ class SearchFilter implements FilterableInterface
 	}
 
 	/**
-	 * {@inheritdoc}
-	 */
-	public function with(array|string $relations): self
-	{
-		if (is_string($relations)) {
-			$relations = [$relations];
-		}
-
-		$this->with = array_merge($this->with, $relations);
-
-		return $this;
-	}
-
-	/**
-	 * {@inheritdoc}
-	 */
-	public function where(string $field, mixed $operator, mixed $value = null): self
-	{
-		// If only two arguments are passed, assume equals operator
-		if ($value === null) {
-			$value = $operator;
-			$operator = '=';
-		}
-
-		$this->wheres[] = [
-			'field' => $field,
-			'operator' => $operator,
-			'value' => $value,
-		];
-
-		return $this;
-	}
-
-	/**
-	 * {@inheritdoc}
-	 */
-	public function whereHas(string $relation, callable $callback): self
-	{
-		$this->whereHas[] = [
-			'relation' => $relation,
-			'callback' => $callback,
-		];
-
-		return $this;
-	}
-
-	/**
-	 * {@inheritdoc}
+	 * Get the results of the filter.
+	 *
+	 * @return LengthAwarePaginator|Collection
 	 */
 	public function get(): LengthAwarePaginator|Collection
 	{
-		$this->apply($this->query);
+		// Apply all conditions to the internal query
+		foreach ($this->conditions as $condition) {
+			$method = $condition['type'];
+			$args = $condition['args'];
+
+			// Special handling for 'with' method when second argument is null
+			if ($method === 'with' && count($args) === 2 && $args[1] === null) {
+				$this->query->with($args[0]);
+			} else {
+				$this->query->{$method}(...$args);
+			}
+		}
+
+		// Apply search keyword if model is searchable
+		if ($this->keyword !== null && method_exists($this->query->getModel(), 'scopeSearchByKeyword')) {
+			$this->query->searchByKeyword($this->keyword);
+		}
+
+		// Apply default sorting if no orderBy has been set
+		if (empty($this->query->getQuery()->orders) && !$this->hasOrderByCondition()) {
+			$this->query->orderBy($this->sortBy, $this->sortDirection);
+		}
 
 		if ($this->shouldPaginate) {
 			return $this->query->paginate($this->perPage);
@@ -320,62 +242,137 @@ class SearchFilter implements FilterableInterface
 	}
 
 	/**
-	 * {@inheritdoc}
+	 * Add a where condition.
 	 */
-	public function whereIn(string $field, array $values): self
+	public function where($column, $operator = null, $value = null, $boolean = 'and'): self
 	{
-		$this->whereIns[] = [
-			'field' => $field,
-			'values' => $values,
+		// Store the condition to apply later
+		if (func_num_args() === 2) {
+			$value = $operator;
+			$operator = '=';
+		}
+
+		$this->conditions[] = [
+			'type' => 'where',
+			'args' => [$column, $operator, $value, $boolean],
 		];
 
 		return $this;
 	}
 
 	/**
-	 * {@inheritdoc}
+	 * Add a whereIn condition.
 	 */
-	public function whereNull(string $field): self
+	public function whereIn($column, $values, $boolean = 'and', $not = false): self
 	{
-		$this->whereNulls[] = $field;
-
-		return $this;
-	}
-
-	/**
-	 * {@inheritdoc}
-	 */
-	public function whereNotNull(string $field): self
-	{
-		$this->whereNotNulls[] = $field;
-
-		return $this;
-	}
-
-	/**
-	 * {@inheritdoc}
-	 */
-	public function whereBetween(string $field, array $range): self
-	{
-		$this->whereBetweens[] = [
-			'field' => $field,
-			'range' => $range,
+		$this->conditions[] = [
+			'type' => 'whereIn',
+			'args' => [$column, $values, $boolean, $not],
 		];
 
 		return $this;
 	}
 
 	/**
-	 * {@inheritdoc}
+	 * Add a whereNull condition.
 	 */
-	public function orderBy(string $field, string $direction = 'asc'): self
+	public function whereNull($columns, $boolean = 'and', $not = false): self
 	{
-		$direction = strtolower($direction);
-		$direction = in_array($direction, ['asc', 'desc']) ? $direction : 'asc';
+		$this->conditions[] = [
+			'type' => 'whereNull',
+			'args' => [$columns, $boolean, $not],
+		];
 
-		$this->orderBys[] = [
-			'field' => $field,
-			'direction' => $direction,
+		return $this;
+	}
+
+	/**
+	 * Add a whereNotNull condition.
+	 */
+	public function whereNotNull($columns, $boolean = 'and'): self
+	{
+		$this->conditions[] = [
+			'type' => 'whereNotNull',
+			'args' => [$columns, $boolean],
+		];
+
+		return $this;
+	}
+
+	/**
+	 * Add a whereBetween condition.
+	 */
+	public function whereBetween($column, iterable $values, $boolean = 'and', $not = false): self
+	{
+		$this->conditions[] = [
+			'type' => 'whereBetween',
+			'args' => [$column, $values, $boolean, $not],
+		];
+
+		return $this;
+	}
+
+	/**
+	 * Add a whereHas condition.
+	 */
+	public function whereHas($relation, \Closure $callback = null, $operator = '>=', $count = 1): self
+	{
+		$this->conditions[] = [
+			'type' => 'whereHas',
+			'args' => [$relation, $callback, $operator, $count],
+		];
+
+		return $this;
+	}
+
+	/**
+	 * Add an orderBy clause.
+	 */
+	public function orderBy($column, $direction = 'asc'): self
+	{
+		$this->conditions[] = [
+			'type' => 'orderBy',
+			'args' => [$column, $direction],
+		];
+
+		return $this;
+	}
+
+	/**
+	 * Add relationships to eager load.
+	 */
+	public function with($relations, $callback = null): self
+	{
+		$this->conditions[] = [
+			'type' => 'with',
+			'args' => [$relations, $callback],
+		];
+
+		return $this;
+	}
+
+	/**
+	 * Check if any orderBy condition has been added.
+	 */
+	protected function hasOrderByCondition(): bool
+	{
+		foreach ($this->conditions as $condition) {
+			if ($condition['type'] === 'orderBy') {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	/**
+	 * Proxy to other Laravel Builder methods.
+	 */
+	public function __call($method, $parameters)
+	{
+		$this->conditions[] = [
+			'type' => $method,
+			'args' => $parameters,
 		];
 
 		return $this;

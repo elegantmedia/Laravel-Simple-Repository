@@ -190,41 +190,6 @@ class FindMethodsTest extends TestCase
 		$this->repository->findOrFail(999);
 	}
 
-	/**
-	 * Test findByAttribute method.
-	 */
-	public function test_find_by_attribute_updates_existing_model(): void
-	{
-		$model = $this->createTestModel([
-			'email' => 'test@example.com',
-			'name' => 'Original Name',
-		]);
-
-		$updated = $this->repository->findByAttribute(
-			'email',
-			'test@example.com',
-			['name' => 'Updated Name']
-		);
-
-		$this->assertNotNull($updated);
-		$this->assertEquals($model->id, $updated->id);
-		$this->assertEquals('Updated Name', $updated->name);
-
-		// Verify in database
-		$fresh = $this->repository->find($model->id);
-		$this->assertEquals('Updated Name', $fresh->name);
-	}
-
-	public function test_find_by_attribute_returns_null_when_not_found(): void
-	{
-		$result = $this->repository->findByAttribute(
-			'email',
-			'nonexistent@example.com',
-			['name' => 'New Name']
-		);
-
-		$this->assertNull($result);
-	}
 
 	/**
 	 * Test firstOrNew method.

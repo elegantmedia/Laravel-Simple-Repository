@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace ElegantMedia\SimpleRepository\Contracts;
 
 use ElegantMedia\SimpleRepository\Search\Contracts\FilterableInterface;
-use Illuminate\Contracts\Pagination\CursorPaginator;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Contracts\Pagination\Paginator;
 use Illuminate\Database\Eloquent\Builder;
@@ -44,19 +43,11 @@ interface RepositoryInterface
 	/**
 	 * Get all models with optional relationships and columns.
 	 *
-	 * @param array<string> $columns
 	 * @param array<string> $with
 	 *
 	 * @return Collection<int, Model>
 	 */
-	public function all(array $columns = ['*'], array $with = []): Collection;
-
-	/**
-	 * Set relationships to eager load.
-	 *
-	 * @param array<string>|string $relations
-	 */
-	public function with(array|string $relations): static;
+	public function all(array $with = []): Collection;
 
 	/**
 	 * Paginate the model results with optional relationships.
@@ -81,19 +72,21 @@ interface RepositoryInterface
 	): Paginator;
 
 	/**
-	 * Cursor paginate the model results.
-	 */
-	public function cursorPaginate(int $perPage = 50): CursorPaginator;
-
-	/**
 	 * Search models using the provided filter.
 	 *
-	 * @return LengthAwarePaginator|Collection<int, Model>
+	 * Flexible search method that can return paginated or unpaginated results based on
+	 * the filter configuration. Use this when you need dynamic search behavior.
+	 *
+	 * @return LengthAwarePaginator|Paginator|Collection<int, Model>
 	 */
-	public function search(?FilterableInterface $filter = null): LengthAwarePaginator|Collection;
+	public function search(?FilterableInterface $filter = null): LengthAwarePaginator|Paginator|Collection;
 
 	/**
 	 * Simple search for models by a search term.
+	 *
+	 * Returns all matching results as a collection without pagination.
+	 * Use this for small datasets, autocomplete, dropdowns, or when you need
+	 * all results at once.
 	 *
 	 * @return Collection<int, Model>
 	 */
@@ -101,18 +94,21 @@ interface RepositoryInterface
 
 	/**
 	 * Search models with pagination.
+	 *
+	 * Always returns paginated results. Use this for large datasets,
+	 * table views, or when you need to display results page by page.
+	 *
+	 * @param string $term
+	 * @param int    $perPage
+	 *
+	 * @return LengthAwarePaginator|Paginator
 	 */
-	public function searchPaginated(string $term, int $perPage = 50): LengthAwarePaginator;
+	public function searchPaginated(string $term, int $perPage = 50): LengthAwarePaginator|Paginator;
 
 	/**
-	 * Get a search query builder.
+	 * Create a new filter instance.
 	 */
-	public function searchQuery(string $term): Builder;
-
-	/**
-	 * Create a new search filter instance.
-	 */
-	public function newSearchFilter(bool $defaults = true): FilterableInterface;
+	public function newFilter(bool $defaults = true): FilterableInterface;
 
 	/*
 	 |-----------------------------------------------------------
@@ -196,17 +192,6 @@ interface RepositoryInterface
 	 */
 	public function findManyByField(string $field, mixed $value): Collection;
 
-	/**
-	 * Find and update model attributes.
-	 *
-	 * @param array<string, mixed> $attributes
-	 */
-	public function findByAttribute(
-		string $whereKey,
-		mixed $whereValue,
-		array $attributes
-	): ?Model;
-
 	/*
 	 |-----------------------------------------------------------
 	 | Create
@@ -229,41 +214,25 @@ interface RepositoryInterface
 	 */
 	public function createMany(array $records): Collection;
 
-	/**
-	 * Update or create a model matching the attributes, and fill it with values.
-	 *
-	 * @param array<string, mixed> $attributes
-	 * @param array<string, mixed> $values
-	 */
-	public function updateOrCreate(array $attributes, array $values = []): Model;
-
 	/*
 	 |-----------------------------------------------------------
-	 | Update or Insert/Create
+	 | Update or Create
 	 |-----------------------------------------------------------
 	 */
 
 	/**
-	 * Update or insert a model.
-	 *
-	 * @param array<string, mixed> $searchAttributes
-	 * @param array<string, mixed> $values
-	 */
-	public function updateOrInsert(array $searchAttributes, array $values = []): Model;
-
-	/**
-	 * Update or insert a model by ID.
+	 * Update or create a model by ID.
 	 *
 	 * @param array<string, mixed> $attributes
 	 */
-	public function updateOrInsertById(int|string|null $id, array $attributes, string $idColumn = 'id'): Model;
+	public function updateOrCreateById(int|string|null $id, array $attributes, string $idColumn = 'id'): Model;
 
 	/**
-	 * Update or insert a model by UUID.
+	 * Update or create a model by UUID.
 	 *
 	 * @param array<string, mixed> $attributes
 	 */
-	public function updateOrInsertByUuid(array $attributes): Model;
+	public function updateOrCreateByUuid(array $attributes): Model;
 
 	/*
 	 |-----------------------------------------------------------
@@ -299,7 +268,7 @@ interface RepositoryInterface
 	public function save(Model $model): bool;
 
 	/*
-	 |-----------------------------------------------------------
+	 |----------------------------------------------------------
 	 | Destroy
 	 |-----------------------------------------------------------
 	 */
@@ -321,7 +290,7 @@ interface RepositoryInterface
 	 *
 	 * @param array<int|string> $ids
 	 */
-	public function deleteMany(array $ids): int;
+	public function deleteManyByIds(array $ids): int;
 
 	/**
 	 * Restore a soft deleted model by ID.
@@ -332,68 +301,6 @@ interface RepositoryInterface
 	 * Force delete a model by ID.
 	 */
 	public function forceDelete(int|string $id): bool;
-
-	/*
-	 |-----------------------------------------------------------
-	 | Query Builder Methods
-	 |-----------------------------------------------------------
-	 */
-
-	/**
-	 * Add a where in condition to the query.
-	 *
-	 * @param array<mixed> $values
-	 */
-	public function whereIn(string $field, array $values): static;
-
-	/**
-	 * Add a where condition to the query.
-	 */
-	public function where(string $field, mixed $operator, mixed $value = null): static;
-
-	/**
-	 * Add a where has condition to the query.
-	 */
-	public function whereHas(string $relation, ?callable $callback = null): static;
-
-	/**
-	 * Add a where doesn't have condition to the query.
-	 */
-	public function whereDoesntHave(string $relation, ?callable $callback = null): static;
-
-	/**
-	 * Add a has condition to the query.
-	 */
-	public function has(string $relation, string $operator = '>=', int $count = 1): static;
-
-	/**
-	 * Add an order by clause to the query.
-	 */
-	public function orderBy(string $field, string $direction = 'asc'): static;
-
-	/**
-	 * Limit the number of results.
-	 */
-	public function limit(int $limit): static;
-
-	/**
-	 * Select specific columns.
-	 *
-	 * @param array<string>|string $columns
-	 */
-	public function select(array|string $columns): static;
-
-	/**
-	 * Get the results based on the built query.
-	 *
-	 * @return Collection<int, Model>
-	 */
-	public function get(): Collection;
-
-	/**
-	 * Get the first result based on the built query.
-	 */
-	public function first(): ?Model;
 
 	/*
 	 |-----------------------------------------------------------
@@ -494,18 +401,4 @@ interface RepositoryInterface
 	 * @return Model|Collection<int, Model>|null
 	 */
 	public function random(int $count = 1): Model|Collection|null;
-
-	/**
-	 * Check if models exist matching the given conditions.
-	 *
-	 * @param array<string, mixed> $where
-	 */
-	public function existsWhere(array $where): bool;
-
-	/**
-	 * Count models matching the given conditions.
-	 *
-	 * @param array<string, mixed> $where
-	 */
-	public function countWhere(array $where): int;
 }

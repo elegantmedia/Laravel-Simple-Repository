@@ -70,18 +70,6 @@ class BaseRepositoryTest extends TestCase
 		$this->assertCount(3, $results);
 	}
 
-	public function test_all_with_columns(): void
-	{
-		$model = $this->createTestModel();
-
-		// Test that the method accepts columns parameter
-		$results = $this->repository->all(['id', 'name']);
-
-		$this->assertCount(1, $results);
-		$this->assertNotNull($results[0]->id);
-		$this->assertNotNull($results[0]->name);
-	}
-
 	public function test_paginate_returns_paginated_results(): void
 	{
 		$this->createTestModels(25);

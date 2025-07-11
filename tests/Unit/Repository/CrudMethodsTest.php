@@ -160,13 +160,13 @@ class CrudMethodsTest extends TestCase
 	}
 
 	/**
-	 * Test updateOrInsert method.
+	 * Test updateOrCreate method.
 	 */
-	public function test_update_or_insert_updates_existing_model(): void
+	public function test_update_or_create_updates_existing_model(): void
 	{
 		$model = $this->createTestModel(['email' => 'existing@example.com']);
 
-		$result = $this->repository->updateOrInsert(
+		$result = $this->repository->updateOrCreate(
 			['email' => 'existing@example.com'],
 			['name' => 'Updated Name', 'status' => 'updated']
 		);
@@ -176,9 +176,9 @@ class CrudMethodsTest extends TestCase
 		$this->assertEquals('updated', $result->status);
 	}
 
-	public function test_update_or_insert_creates_new_model(): void
+	public function test_update_or_create_creates_new_model(): void
 	{
-		$result = $this->repository->updateOrInsert(
+		$result = $this->repository->updateOrCreate(
 			['email' => 'new@example.com'],
 			['name' => 'New Model']
 		);
@@ -188,9 +188,9 @@ class CrudMethodsTest extends TestCase
 		$this->assertEquals('New Model', $result->name);
 	}
 
-	public function test_update_or_insert_by_id_creates_when_null(): void
+	public function test_update_or_create_by_id_creates_when_null(): void
 	{
-		$model = $this->repository->updateOrInsertById(null, [
+		$model = $this->repository->updateOrCreateById(null, [
 			'email' => 'new@example.com',
 			'name' => 'Created Model',
 		]);
@@ -200,11 +200,11 @@ class CrudMethodsTest extends TestCase
 		$this->assertEquals('Created Model', $model->name);
 	}
 
-	public function test_update_or_insert_by_id_updates_existing(): void
+	public function test_update_or_create_by_id_updates_existing(): void
 	{
 		$existing = $this->createTestModel();
 
-		$result = $this->repository->updateOrInsertById($existing->id, [
+		$result = $this->repository->updateOrCreateById($existing->id, [
 			'name' => 'Updated Name',
 			'status' => 'updated',
 		]);
@@ -215,13 +215,13 @@ class CrudMethodsTest extends TestCase
 	}
 
 	/**
-	 * Test updateOrInsertByUuid method.
+	 * Test updateOrCreateByUuid method.
 	 */
-	public function test_update_or_insert_by_uuid(): void
+	public function test_update_or_create_by_uuid(): void
 	{
 		$uuid = (string) Str::uuid();
 
-		$model = $this->repository->updateOrInsertByUuid([
+		$model = $this->repository->updateOrCreateByUuid([
 			'uuid' => $uuid,
 			'name' => 'UUID Model',
 		]);
@@ -231,7 +231,7 @@ class CrudMethodsTest extends TestCase
 		$this->assertEquals('UUID Model', $model->name);
 
 		// Update the same model
-		$updated = $this->repository->updateOrInsertByUuid([
+		$updated = $this->repository->updateOrCreateByUuid([
 			'uuid' => $uuid,
 			'name' => 'Updated UUID Model',
 		]);

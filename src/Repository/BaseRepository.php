@@ -8,7 +8,6 @@ use ElegantMedia\SimpleRepository\Contracts\RepositoryInterface;
 use ElegantMedia\SimpleRepository\Exceptions\KeyNotFoundInAttributesException;
 use ElegantMedia\SimpleRepository\Search\Contracts\FilterableInterface;
 use ElegantMedia\SimpleRepository\Search\Filters\SearchFilter;
-use Illuminate\Contracts\Pagination\CursorPaginator;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Contracts\Pagination\Paginator;
 use Illuminate\Database\Eloquent\Builder;
@@ -22,16 +21,6 @@ abstract class BaseRepository implements RepositoryInterface
 	protected string $primaryKey = 'id';
 
 	protected Model $model;
-
-	/**
-	 * @var array<string>
-	 */
-	protected array $with = [];
-
-	/**
-	 * Query builder instance for chaining methods.
-	 */
-	protected ?Builder $query = null;
 
 	public function __construct(Model $model)
 	{
@@ -79,26 +68,16 @@ abstract class BaseRepository implements RepositoryInterface
 	/**
 	 * {@inheritdoc}
 	 */
-	public function all(array $columns = ['*'], array $with = []): Collection
+	public function all(array $with = []): Collection
 	{
 		$query = $this->newQuery();
 
-		$eagerLoad = array_merge($this->with, $with);
+		$eagerLoad = $with;
 		if (!empty($eagerLoad)) {
 			$query->with($eagerLoad);
 		}
 
-		return $query->get($columns);
-	}
-
-	/**
-	 * {@inheritdoc}
-	 */
-	public function with(array|string $relations): static
-	{
-		$this->with = is_array($relations) ? $relations : [$relations];
-
-		return $this;
+		return $query->get();
 	}
 
 	/**
@@ -146,18 +125,10 @@ abstract class BaseRepository implements RepositoryInterface
 	/**
 	 * {@inheritdoc}
 	 */
-	public function cursorPaginate(int $perPage = 15): CursorPaginator
-	{
-		return $this->newQuery()->cursorPaginate($perPage);
-	}
-
-	/**
-	 * {@inheritdoc}
-	 */
 	public function search(?FilterableInterface $filter = null): LengthAwarePaginator|Collection
 	{
 		if ($filter === null) {
-			$filter = $this->newSearchFilter();
+			$filter = $this->newFilter();
 		}
 
 		$query = $this->newQuery();
@@ -171,42 +142,29 @@ abstract class BaseRepository implements RepositoryInterface
 	 */
 	public function searchByTerm(string $term): Collection
 	{
-		return $this->searchQuery($term)->get();
+		$filter = $this->newFilter();
+		$filter->setKeyword($term);
+		$filter->setPaginate(false);
+
+		return $this->search($filter);
 	}
 
 	/**
 	 * {@inheritdoc}
 	 */
-	public function searchPaginated(string $term, int $perPage = 20): LengthAwarePaginator
+	public function searchPaginated(string $term, int $perPage = 50): LengthAwarePaginator
 	{
-		return $this->searchQuery($term)->paginate($perPage);
+		$filter = $this->newFilter();
+		$filter->setKeyword($term);
+		$filter->setPerPage($perPage);
+
+		return $this->search($filter);
 	}
 
 	/**
 	 * {@inheritdoc}
 	 */
-	public function searchQuery(string $term): Builder
-	{
-		$query = $this->newQuery();
-
-		// Get searchable fields from the model if available
-		$searchableFields = property_exists($this->model, 'searchable')
-			? $this->model->searchable
-			: [$this->model->getKeyName()];
-
-		$query->where(function ($q) use ($term, $searchableFields) {
-			foreach ($searchableFields as $field) {
-				$q->orWhere($field, 'LIKE', '%' . $term . '%');
-			}
-		});
-
-		return $query;
-	}
-
-	/**
-	 * {@inheritdoc}
-	 */
-	public function newSearchFilter(bool $defaults = true): FilterableInterface
+	public function newFilter(bool $defaults = true): FilterableInterface
 	{
 		return new SearchFilter($this->newQuery(), $defaults);
 	}
@@ -333,24 +291,6 @@ abstract class BaseRepository implements RepositoryInterface
 		return $this->newQuery()->where($field, $value)->get();
 	}
 
-	/**
-	 * {@inheritdoc}
-	 */
-	public function findByAttribute(
-		string $whereKey,
-		mixed $whereValue,
-		array $attributes
-	): ?Model {
-		$model = $this->findByField($whereKey, $whereValue);
-
-		if ($model !== null) {
-			$model->fill($attributes);
-			$model->save();
-		}
-
-		return $model;
-	}
-
 	/*
 	 |-----------------------------------------------------------
 	 | Create
@@ -389,34 +329,26 @@ abstract class BaseRepository implements RepositoryInterface
 
 	/*
 	 |-----------------------------------------------------------
-	 | Update or Insert/Create
+	 | Update or Create
 	 |-----------------------------------------------------------
 	 */
 
 	/**
 	 * {@inheritdoc}
 	 */
-	public function updateOrInsert(array $searchAttributes, array $values = []): Model
-	{
-		return $this->updateOrCreate($searchAttributes, $values);
-	}
-
-	/**
-	 * {@inheritdoc}
-	 */
-	public function updateOrInsertById(int|string|null $id, array $attributes, string $idColumn = 'id'): Model
+	public function updateOrCreateById(int|string|null $id, array $attributes, string $idColumn = 'id'): Model
 	{
 		if ($id === null) {
 			return $this->create($attributes);
 		}
 
-		return $this->updateOrInsert([$idColumn => $id], $attributes);
+		return $this->updateOrCreate([$idColumn => $id], $attributes);
 	}
 
 	/**
 	 * {@inheritdoc}
 	 */
-	public function updateOrInsertByUuid(array $attributes): Model
+	public function updateOrCreateByUuid(array $attributes): Model
 	{
 		if (!array_key_exists('uuid', $attributes)) {
 			throw new KeyNotFoundInAttributesException(
@@ -424,7 +356,7 @@ abstract class BaseRepository implements RepositoryInterface
 			);
 		}
 
-		return $this->updateOrInsertById($attributes['uuid'], $attributes, 'uuid');
+		return $this->updateOrCreateById($attributes['uuid'], $attributes, 'uuid');
 	}
 
 	/*
@@ -516,7 +448,7 @@ abstract class BaseRepository implements RepositoryInterface
 	/**
 	 * {@inheritdoc}
 	 */
-	public function deleteMany(array $ids): int
+	public function deleteManyByIds(array $ids): int
 	{
 		return $this->newQuery()->whereIn($this->primaryKey, $ids)->delete();
 	}
@@ -547,140 +479,6 @@ abstract class BaseRepository implements RepositoryInterface
 		}
 
 		return (bool) $model->forceDelete();
-	}
-
-	/*
-	 |-----------------------------------------------------------
-	 | Query Builder Methods
-	 |-----------------------------------------------------------
-	 */
-
-	/**
-	 * Get or initialize the query builder.
-	 */
-	protected function getQueryBuilder(): Builder
-	{
-		if ($this->query === null) {
-			$this->query = $this->newQuery();
-		}
-
-		return $this->query;
-	}
-
-	/**
-	 * Reset the query builder.
-	 */
-	protected function resetQuery(): void
-	{
-		$this->query = null;
-	}
-
-	/**
-	 * {@inheritdoc}
-	 */
-	public function whereIn(string $field, array $values): static
-	{
-		$this->getQueryBuilder()->whereIn($field, $values);
-
-		return $this;
-	}
-
-	/**
-	 * {@inheritdoc}
-	 */
-	public function where(string $field, mixed $operator, mixed $value = null): static
-	{
-		if ($value === null) {
-			$value = $operator;
-			$operator = '=';
-		}
-
-		$this->getQueryBuilder()->where($field, $operator, $value);
-
-		return $this;
-	}
-
-	/**
-	 * {@inheritdoc}
-	 */
-	public function whereHas(string $relation, ?callable $callback = null): static
-	{
-		$this->getQueryBuilder()->whereHas($relation, $callback);
-
-		return $this;
-	}
-
-	/**
-	 * {@inheritdoc}
-	 */
-	public function whereDoesntHave(string $relation, ?callable $callback = null): static
-	{
-		$this->getQueryBuilder()->whereDoesntHave($relation, $callback);
-
-		return $this;
-	}
-
-	/**
-	 * {@inheritdoc}
-	 */
-	public function has(string $relation, string $operator = '>=', int $count = 1): static
-	{
-		$this->getQueryBuilder()->has($relation, $operator, $count);
-
-		return $this;
-	}
-
-	/**
-	 * {@inheritdoc}
-	 */
-	public function orderBy(string $field, string $direction = 'asc'): static
-	{
-		$this->getQueryBuilder()->orderBy($field, $direction);
-
-		return $this;
-	}
-
-	/**
-	 * {@inheritdoc}
-	 */
-	public function limit(int $limit): static
-	{
-		$this->getQueryBuilder()->limit($limit);
-
-		return $this;
-	}
-
-	/**
-	 * {@inheritdoc}
-	 */
-	public function select(array|string $columns): static
-	{
-		$columns = is_array($columns) ? $columns : func_get_args();
-		$this->getQueryBuilder()->select($columns);
-
-		return $this;
-	}
-
-	/**
-	 * {@inheritdoc}
-	 */
-	public function get(): Collection
-	{
-		$result = $this->getQueryBuilder()->get();
-		$this->resetQuery();
-
-		return $result;
-	}
-
-	/**
-	 * {@inheritdoc}
-	 */
-	public function first(): ?Model
-	{
-		$result = $this->getQueryBuilder()->first();
-		$this->resetQuery();
-
-		return $result;
 	}
 
 	/*
@@ -854,21 +652,5 @@ abstract class BaseRepository implements RepositoryInterface
 		}
 
 		return $result;
-	}
-
-	/**
-	 * {@inheritdoc}
-	 */
-	public function existsWhere(array $where): bool
-	{
-		return $this->exists($where);
-	}
-
-	/**
-	 * {@inheritdoc}
-	 */
-	public function countWhere(array $where): int
-	{
-		return $this->count($where);
 	}
 }

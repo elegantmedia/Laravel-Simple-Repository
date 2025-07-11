@@ -104,46 +104,49 @@ class SearchMethodsTest extends TestCase
 	}
 
 	/**
-	 * Test searchQuery method.
+	 * Test search with filter returns builder functionality.
 	 */
-	public function test_search_query_returns_builder(): void
+	public function test_search_with_filter_and_additional_conditions(): void
 	{
 		$this->createTestModel(['name' => 'Searchable Item']);
 
-		$query = $this->repository->searchQuery('Searchable');
+		$filter = $this->repository->newFilter();
+		$filter->setKeyword('Searchable');
+		$filter->where('status', 'active');
+		$filter->setPaginate(false);
 
-		$this->assertInstanceOf(Builder::class, $query);
-
-		// We can further modify the query
-		$results = $query->where('status', 'active')->get();
+		$results = $this->repository->search($filter);
 
 		$this->assertCount(1, $results);
 		$this->assertEquals('Searchable Item', $results->first()->name);
 	}
 
-	public function test_search_query_can_be_chained(): void
+	public function test_search_filter_can_be_chained(): void
 	{
 		$this->createTestModel(['name' => 'First Match', 'price' => 100]);
 		$this->createTestModel(['name' => 'Second Match', 'price' => 200]);
 		$this->createTestModel(['name' => 'Third Item', 'price' => 150]);
 
-		$results = $this->repository
-			->searchQuery('Match')
+		$filter = $this->repository->newFilter();
+		$filter->setKeyword('Match')
 			->where('price', '>', 150)
 			->orderBy('price', 'desc')
-			->get();
+			->setPaginate(false);
+
+		$results = $this->repository->search($filter);
 
 		$this->assertCount(1, $results);
 		$this->assertEquals('Second Match', $results->first()->name);
 		$this->assertEquals(200, $results->first()->price);
 	}
 
-	public function test_search_query_with_select(): void
+	public function test_direct_query_builder_with_search(): void
 	{
 		$this->createTestModel(['name' => 'Test Search', 'email' => 'test@example.com']);
 
-		$result = $this->repository
-			->searchQuery('Test')
+		// For complex queries with select, use direct query builder
+		$query = $this->repository->newQuery();
+		$result = $query->where('name', 'LIKE', '%Test%')
 			->select(['id', 'name'])
 			->first();
 

@@ -31,7 +31,7 @@ class SearchFilterTest extends TestCase
 
 	public function test_search_with_custom_filter(): void
 	{
-		$filter = $this->repository->newSearchFilter();
+		$filter = $this->repository->newFilter();
 		$filter->where('status', 'active');
 
 		$results = $this->repository->search($filter);
@@ -41,21 +41,21 @@ class SearchFilterTest extends TestCase
 
 	public function test_new_search_filter_returns_filter_instance(): void
 	{
-		$filter = $this->repository->newSearchFilter();
+		$filter = $this->repository->newFilter();
 
 		$this->assertInstanceOf(SearchFilter::class, $filter);
 	}
 
 	public function test_new_search_filter_without_defaults(): void
 	{
-		$filter = $this->repository->newSearchFilter(false);
+		$filter = $this->repository->newFilter(false);
 
 		$this->assertInstanceOf(SearchFilter::class, $filter);
 	}
 
 	public function test_search_filter_with_where_conditions(): void
 	{
-		$filter = $this->repository->newSearchFilter();
+		$filter = $this->repository->newFilter();
 		$filter->where('name', 'Product 1')
 			   ->where('is_active', true);
 
@@ -67,7 +67,7 @@ class SearchFilterTest extends TestCase
 
 	public function test_search_filter_with_multiple_where(): void
 	{
-		$filter = $this->repository->newSearchFilter();
+		$filter = $this->repository->newFilter();
 		$filter->where('status', 'active')
 			   ->where('is_active', true);
 
@@ -78,7 +78,7 @@ class SearchFilterTest extends TestCase
 
 	public function test_search_filter_with_sort(): void
 	{
-		$filter = $this->repository->newSearchFilter();
+		$filter = $this->repository->newFilter();
 		$filter->setSortBy('price')->setSortDirection('desc');
 
 		$results = $this->repository->search($filter);
@@ -89,8 +89,8 @@ class SearchFilterTest extends TestCase
 
 	public function test_search_filter_with_pagination_disabled(): void
 	{
-		$filter = $this->repository->newSearchFilter();
-		$filter->paginate(false);
+		$filter = $this->repository->newFilter();
+		$filter->setPaginate(false);
 
 		$results = $this->repository->search($filter);
 
@@ -100,8 +100,8 @@ class SearchFilterTest extends TestCase
 
 	public function test_search_filter_with_pagination(): void
 	{
-		$filter = $this->repository->newSearchFilter();
-		$filter->paginate(true)->setPerPage(2);
+		$filter = $this->repository->newFilter();
+		$filter->setPaginate(true)->setPerPage(2);
 
 		$results = $this->repository->search($filter);
 
@@ -111,7 +111,7 @@ class SearchFilterTest extends TestCase
 
 	public function test_paginate_with_filter(): void
 	{
-		$filter = $this->repository->newSearchFilter();
+		$filter = $this->repository->newFilter();
 		$filter->where('status', 'active');
 
 		$results = $this->repository->paginate(2, [], $filter);
@@ -122,7 +122,7 @@ class SearchFilterTest extends TestCase
 
 	public function test_simple_paginate_with_filter(): void
 	{
-		$filter = $this->repository->newSearchFilter();
+		$filter = $this->repository->newFilter();
 		$filter->where('is_active', true);
 
 		$results = $this->repository->simplePaginate(2, [], $filter);

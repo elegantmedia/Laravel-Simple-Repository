@@ -74,27 +74,27 @@ class NewUtilityMethodsTest extends TestCase
 	}
 
 	/**
-	 * Test existsWhere method.
+	 * Test exists method with where conditions.
 	 */
-	public function test_exists_where_returns_true_when_matches(): void
+	public function test_exists_with_where_returns_true_when_matches(): void
 	{
 		$this->createTestModel(['status' => 'active', 'price' => 100]);
 
-		$exists = $this->repository->existsWhere(['status' => 'active']);
+		$exists = $this->repository->exists(['status' => 'active']);
 
 		$this->assertTrue($exists);
 	}
 
-	public function test_exists_where_returns_false_when_no_matches(): void
+	public function test_exists_with_where_returns_false_when_no_matches(): void
 	{
 		$this->createTestModel(['status' => 'active']);
 
-		$exists = $this->repository->existsWhere(['status' => 'inactive']);
+		$exists = $this->repository->exists(['status' => 'inactive']);
 
 		$this->assertFalse($exists);
 	}
 
-	public function test_exists_where_with_multiple_conditions(): void
+	public function test_exists_with_multiple_conditions(): void
 	{
 		$this->createTestModel([
 			'status' => 'active',
@@ -102,7 +102,7 @@ class NewUtilityMethodsTest extends TestCase
 			'price' => 100,
 		]);
 
-		$exists = $this->repository->existsWhere([
+		$exists = $this->repository->exists([
 			'status' => 'active',
 			'is_active' => true,
 			'price' => 100,
@@ -111,7 +111,7 @@ class NewUtilityMethodsTest extends TestCase
 		$this->assertTrue($exists);
 
 		// One condition doesn't match
-		$exists = $this->repository->existsWhere([
+		$exists = $this->repository->exists([
 			'status' => 'active',
 			'is_active' => false,
 			'price' => 100,
@@ -121,35 +121,35 @@ class NewUtilityMethodsTest extends TestCase
 	}
 
 	/**
-	 * Test countWhere method.
+	 * Test count method with where conditions.
 	 */
-	public function test_count_where_returns_matching_count(): void
+	public function test_count_with_where_returns_matching_count(): void
 	{
 		$this->createTestModel(['status' => 'active']);
 		$this->createTestModel(['status' => 'active']);
 		$this->createTestModel(['status' => 'inactive']);
 
-		$count = $this->repository->countWhere(['status' => 'active']);
+		$count = $this->repository->count(['status' => 'active']);
 
 		$this->assertEquals(2, $count);
 	}
 
-	public function test_count_where_returns_zero_when_no_matches(): void
+	public function test_count_with_where_returns_zero_when_no_matches(): void
 	{
 		$this->createTestModel(['status' => 'active']);
 
-		$count = $this->repository->countWhere(['status' => 'pending']);
+		$count = $this->repository->count(['status' => 'pending']);
 
 		$this->assertEquals(0, $count);
 	}
 
-	public function test_count_where_with_multiple_conditions(): void
+	public function test_count_with_multiple_conditions(): void
 	{
 		$this->createTestModel(['status' => 'active', 'is_active' => true]);
 		$this->createTestModel(['status' => 'active', 'is_active' => false]);
 		$this->createTestModel(['status' => 'inactive', 'is_active' => true]);
 
-		$count = $this->repository->countWhere([
+		$count = $this->repository->count([
 			'status' => 'active',
 			'is_active' => true,
 		]);
@@ -157,7 +157,7 @@ class NewUtilityMethodsTest extends TestCase
 		$this->assertEquals(1, $count);
 	}
 
-	public function test_count_where_with_operators(): void
+	public function test_count_with_operators(): void
 	{
 		$this->createTestModel(['price' => 50]);
 		$this->createTestModel(['price' => 100]);
@@ -165,7 +165,7 @@ class NewUtilityMethodsTest extends TestCase
 		$this->createTestModel(['price' => 200]);
 
 		// Using operator syntax
-		$count = $this->repository->countWhere([
+		$count = $this->repository->count([
 			'price' => ['>=', 100],
 		]);
 

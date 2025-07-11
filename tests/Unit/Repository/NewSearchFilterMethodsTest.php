@@ -85,7 +85,7 @@ class NewSearchFilterMethodsTest extends TestCase
 		$this->createTestModel(['status' => 'inactive']);
 
 		// Create filter and apply
-		$filter = $this->repository->newSearchFilter();
+		$filter = $this->repository->newFilter();
 		$filter->whereIn('status', ['active', 'pending']);
 
 		$results = $this->repository->search($filter);
@@ -116,7 +116,7 @@ class NewSearchFilterMethodsTest extends TestCase
 		$this->createTestModel(['description' => 'Has description']);
 		$this->createTestModel(['description' => null]);
 
-		$filter = $this->repository->newSearchFilter();
+		$filter = $this->repository->newFilter();
 		$filter->whereNull('description');
 
 		$results = $this->repository->search($filter);
@@ -137,7 +137,7 @@ class NewSearchFilterMethodsTest extends TestCase
 		$this->createTestModel(['description' => 'First description']);
 		$this->createTestModel(['description' => 'Second description']);
 
-		$filter = $this->repository->newSearchFilter();
+		$filter = $this->repository->newFilter();
 		$filter->whereNotNull('description');
 
 		$results = $this->repository->search($filter);
@@ -160,7 +160,7 @@ class NewSearchFilterMethodsTest extends TestCase
 		$this->createTestModel(['price' => 200]);
 		$this->createTestModel(['price' => 250]);
 
-		$filter = $this->repository->newSearchFilter();
+		$filter = $this->repository->newFilter();
 		$filter->whereBetween('price', [100, 200]);
 
 		$results = $this->repository->search($filter);
@@ -198,7 +198,7 @@ class NewSearchFilterMethodsTest extends TestCase
 		$this->createTestModel(['status' => 'active', 'price' => 100, 'name' => 'A']);
 		$this->createTestModel(['status' => 'inactive', 'price' => 300, 'name' => 'C']);
 
-		$filter = $this->repository->newSearchFilter();
+		$filter = $this->repository->newFilter();
 
 		// Add multiple order by clauses
 		$filter->orderBy('status', 'asc')
@@ -238,7 +238,7 @@ class NewSearchFilterMethodsTest extends TestCase
 		$this->createTestModel(['name' => 'Model Three', 'status' => 'inactive', 'price' => 300, 'description' => 'Has desc']);
 		$this->createTestModel(['name' => 'Model Four', 'status' => 'active', 'price' => 300, 'description' => 'Has desc']);
 
-		$filter = $this->repository->newSearchFilter();
+		$filter = $this->repository->newFilter();
 
 		$filter->setSearchBy('Model')
 			   ->where('status', 'active')
