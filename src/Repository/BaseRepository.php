@@ -22,6 +22,11 @@ abstract class BaseRepository implements RepositoryInterface
 
 	protected Model $model;
 
+	/**
+	 * Whether to automatically wrap write operations in transactions.
+	 */
+	protected bool $autoTransaction = false;
+
 	public function __construct(Model $model)
 	{
 		$this->model = $model;
@@ -224,11 +229,13 @@ abstract class BaseRepository implements RepositoryInterface
 	 */
 	public function findOrCreateById(int|string|null $id, array $attributes, string $idColumn = 'id'): Model
 	{
-		if ($id === null) {
-			return $this->create($attributes);
-		}
+		return $this->executeInTransaction(function () use ($id, $attributes, $idColumn) {
+			if ($id === null) {
+				return $this->newQuery()->create($attributes);
+			}
 
-		return $this->findOrCreate([$idColumn => $id], $attributes);
+			return $this->firstOrCreate([$idColumn => $id], $attributes);
+		});
 	}
 
 	/**
@@ -338,11 +345,13 @@ abstract class BaseRepository implements RepositoryInterface
 	 */
 	public function updateOrCreateById(int|string|null $id, array $attributes, string $idColumn = 'id'): Model
 	{
-		if ($id === null) {
-			return $this->create($attributes);
-		}
+		return $this->executeInTransaction(function () use ($id, $attributes, $idColumn) {
+			if ($id === null) {
+				return $this->newQuery()->create($attributes);
+			}
 
-		return $this->updateOrCreate([$idColumn => $id], $attributes);
+			return $this->newQuery()->updateOrCreate([$idColumn => $id], $attributes);
+		});
 	}
 
 	/**
@@ -350,13 +359,15 @@ abstract class BaseRepository implements RepositoryInterface
 	 */
 	public function updateOrCreateByUuid(array $attributes): Model
 	{
-		if (!array_key_exists('uuid', $attributes)) {
-			throw new KeyNotFoundInAttributesException(
-				"Key 'uuid' not found in the given attributes array"
-			);
-		}
+		return $this->executeInTransaction(function () use ($attributes) {
+			if (!array_key_exists('uuid', $attributes)) {
+				throw new KeyNotFoundInAttributesException(
+					"Key 'uuid' not found in the given attributes array"
+				);
+			}
 
-		return $this->updateOrCreateById($attributes['uuid'], $attributes, 'uuid');
+			return $this->updateOrCreateById($attributes['uuid'], $attributes, 'uuid');
+		});
 	}
 
 	/*
@@ -370,7 +381,9 @@ abstract class BaseRepository implements RepositoryInterface
 	 */
 	public function updateModel(Model $model, array $attributes): bool
 	{
-		return $model->fill($attributes)->save();
+		return $this->executeInTransaction(function () use ($model, $attributes) {
+			return $model->fill($attributes)->save();
+		});
 	}
 
 	/**
@@ -378,13 +391,15 @@ abstract class BaseRepository implements RepositoryInterface
 	 */
 	public function updateById(int|string $id, array $attributes, string $idColumn = 'id'): bool
 	{
-		$model = $this->findByField($idColumn, $id);
+		return $this->executeInTransaction(function () use ($id, $attributes, $idColumn) {
+			$model = $this->findByField($idColumn, $id);
 
-		if ($model === null) {
-			return false;
-		}
+			if ($model === null) {
+				return false;
+			}
 
-		return $this->updateModel($model, $attributes);
+			return $model->fill($attributes)->save();
+		});
 	}
 
 	/**
@@ -392,10 +407,12 @@ abstract class BaseRepository implements RepositoryInterface
 	 */
 	public function updateWhere(array $where, array $data): int
 	{
-		$query = $this->newQuery();
-		$this->applyWhereConditions($query, $where);
+		return $this->executeInTransaction(function () use ($where, $data) {
+			$query = $this->newQuery();
+			$this->applyWhereConditions($query, $where);
 
-		return $query->update($data);
+			return $query->update($data);
+		});
 	}
 
 	/**
@@ -403,7 +420,9 @@ abstract class BaseRepository implements RepositoryInterface
 	 */
 	public function save(Model $model): bool
 	{
-		return $model->save();
+		return $this->executeInTransaction(function () use ($model) {
+			return $model->save();
+		});
 	}
 
 	/*
@@ -417,13 +436,15 @@ abstract class BaseRepository implements RepositoryInterface
 	 */
 	public function delete(int|string $id): bool
 	{
-		$model = $this->find($id);
+		return $this->executeInTransaction(function () use ($id) {
+			$model = $this->find($id);
 
-		if ($model === null) {
-			return false;
-		}
+			if ($model === null) {
+				return false;
+			}
 
-		return (bool) $model->delete();
+			return (bool) $model->delete();
+		});
 	}
 
 	/**
@@ -431,18 +452,20 @@ abstract class BaseRepository implements RepositoryInterface
 	 */
 	public function deleteWhere(array $where): int
 	{
-		$query = $this->newQuery();
+		return $this->executeInTransaction(function () use ($where) {
+			$query = $this->newQuery();
 
-		foreach ($where as $field => $value) {
-			if (is_array($value)) {
-				[$field, $operator, $value] = $value;
-				$query->where($field, $operator, $value);
-			} else {
-				$query->where($field, $value);
+			foreach ($where as $field => $value) {
+				if (is_array($value)) {
+					[$field, $operator, $value] = $value;
+					$query->where($field, $operator, $value);
+				} else {
+					$query->where($field, $value);
+				}
 			}
-		}
 
-		return $query->delete();
+			return $query->delete();
+		});
 	}
 
 	/**
@@ -450,7 +473,9 @@ abstract class BaseRepository implements RepositoryInterface
 	 */
 	public function deleteManyByIds(array $ids): int
 	{
-		return $this->newQuery()->whereIn($this->primaryKey, $ids)->delete();
+		return $this->executeInTransaction(function () use ($ids) {
+			return $this->newQuery()->whereIn($this->primaryKey, $ids)->delete();
+		});
 	}
 
 	/**
@@ -458,13 +483,15 @@ abstract class BaseRepository implements RepositoryInterface
 	 */
 	public function restore(int|string $id): bool
 	{
-		$model = $this->newQuery()->withTrashed()->find($id);
+		return $this->executeInTransaction(function () use ($id) {
+			$model = $this->newQuery()->withTrashed()->find($id);
 
-		if ($model === null) {
-			return false;
-		}
+			if ($model === null) {
+				return false;
+			}
 
-		return (bool) $model->restore();
+			return (bool) $model->restore();
+		});
 	}
 
 	/**
@@ -472,13 +499,15 @@ abstract class BaseRepository implements RepositoryInterface
 	 */
 	public function forceDelete(int|string $id): bool
 	{
-		$model = $this->newQuery()->withTrashed()->find($id);
+		return $this->executeInTransaction(function () use ($id) {
+			$model = $this->newQuery()->withTrashed()->find($id);
 
-		if ($model === null) {
-			return false;
-		}
+			if ($model === null) {
+				return false;
+			}
 
-		return (bool) $model->forceDelete();
+			return (bool) $model->forceDelete();
+		});
 	}
 
 	/*
@@ -637,7 +666,9 @@ abstract class BaseRepository implements RepositoryInterface
 	 */
 	public function firstOrCreate(array $attributes, array $values = []): Model
 	{
-		return $this->newQuery()->firstOrCreate($attributes, $values);
+		return $this->executeInTransaction(function () use ($attributes, $values) {
+			return $this->newQuery()->firstOrCreate($attributes, $values);
+		});
 	}
 
 	/**
@@ -652,5 +683,81 @@ abstract class BaseRepository implements RepositoryInterface
 		}
 
 		return $result;
+	}
+
+	/*
+	 |-----------------------------------------------------------
+	 | Transaction Methods
+	 |-----------------------------------------------------------
+	 */
+
+	/**
+	 * {@inheritdoc}
+	 */
+	public function withTransaction(bool $enabled = true): static
+	{
+		$this->autoTransaction = $enabled;
+
+		return $this;
+	}
+
+	/**
+	 * {@inheritdoc}
+	 */
+	public function transaction(\Closure $callback): mixed
+	{
+		return $this->model->getConnection()->transaction(function () use ($callback) {
+			return $callback($this);
+		});
+	}
+
+	/**
+	 * {@inheritdoc}
+	 */
+	public function beginTransaction(): void
+	{
+		$this->model->getConnection()->beginTransaction();
+	}
+
+	/**
+	 * {@inheritdoc}
+	 */
+	public function commit(): void
+	{
+		$this->model->getConnection()->commit();
+	}
+
+	/**
+	 * {@inheritdoc}
+	 */
+	public function rollback(): void
+	{
+		$this->model->getConnection()->rollBack();
+	}
+
+	/**
+	 * {@inheritdoc}
+	 */
+	public function transactionLevel(): int
+	{
+		return $this->model->getConnection()->transactionLevel();
+	}
+
+	/**
+	 * Execute a callback within a transaction if auto-transaction is enabled.
+	 *
+	 * @template T
+	 *
+	 * @param \Closure(): T $callback
+	 *
+	 * @return T
+	 */
+	protected function executeInTransaction(\Closure $callback): mixed
+	{
+		if ($this->autoTransaction) {
+			return $this->transaction(fn() => $callback());
+		}
+
+		return $callback();
 	}
 }

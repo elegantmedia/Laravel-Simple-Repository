@@ -401,4 +401,62 @@ interface RepositoryInterface
 	 * @return Model|Collection<int, Model>|null
 	 */
 	public function random(int $count = 1): Model|Collection|null;
+
+	/*
+	 |-----------------------------------------------------------
+	 | Transaction Methods
+	 |-----------------------------------------------------------
+	 */
+
+	/**
+	 * Enable or disable automatic transaction wrapping for repository operations.
+	 *
+	 * When enabled, all write operations (create, update, delete) will be
+	 * automatically wrapped in database transactions.
+	 *
+	 * @return static
+	 */
+	public function withTransaction(bool $enabled = true): static;
+
+	/**
+	 * Execute a callback within a database transaction.
+	 *
+	 * If an exception is thrown within the callback, the transaction will be
+	 * rolled back automatically. Otherwise, the transaction will be committed.
+	 *
+	 * @template T
+	 *
+	 * @param \Closure(static): T $callback
+	 *
+	 * @return T
+	 *
+	 * @throws \Exception|\Throwable
+	 */
+	public function transaction(\Closure $callback): mixed;
+
+	/**
+	 * Start a new database transaction.
+	 *
+	 * @throws \Exception
+	 */
+	public function beginTransaction(): void;
+
+	/**
+	 * Commit the active database transaction.
+	 *
+	 * @throws \Exception
+	 */
+	public function commit(): void;
+
+	/**
+	 * Rollback the active database transaction.
+	 *
+	 * @throws \Exception
+	 */
+	public function rollback(): void;
+
+	/**
+	 * Get the number of active transactions.
+	 */
+	public function transactionLevel(): int;
 }
