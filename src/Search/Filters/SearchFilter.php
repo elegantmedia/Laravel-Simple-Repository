@@ -4,14 +4,21 @@ declare(strict_types=1);
 
 namespace ElegantMedia\SimpleRepository\Search\Filters;
 
+use ElegantMedia\SimpleRepository\Search\Contracts\DateFilterInterface;
 use ElegantMedia\SimpleRepository\Search\Contracts\FilterableInterface;
+use ElegantMedia\SimpleRepository\Search\Contracts\FinancialDateFilterInterface;
+use ElegantMedia\SimpleRepository\Search\Traits\DateFilterableTrait;
+use ElegantMedia\SimpleRepository\Search\Traits\FinancialDateFilterableTrait;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Request;
 
-class SearchFilter implements FilterableInterface
+class SearchFilter implements FilterableInterface, DateFilterInterface, FinancialDateFilterInterface
 {
+	use DateFilterableTrait;
+	use FinancialDateFilterableTrait;
+
 	protected Builder $query;
 
 	protected bool $shouldPaginate = true;

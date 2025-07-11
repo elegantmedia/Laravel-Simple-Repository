@@ -755,7 +755,7 @@ abstract class BaseRepository implements RepositoryInterface
 	protected function executeInTransaction(\Closure $callback): mixed
 	{
 		if ($this->autoTransaction) {
-			return $this->transaction(fn() => $callback());
+			return $this->transaction(fn () => $callback());
 		}
 
 		return $callback();
