@@ -1,12 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 namespace {{ namespace }};
 
-use ElegantMedia\SimpleRepository\SimpleBaseRepository;
+use ElegantMedia\SimpleRepository\Repository\BaseRepository as SimpleBaseRepository;
 
 abstract class BaseRepository extends SimpleBaseRepository
 {
-
-	// Add common repository logic for the application here
-
+    // Add common repository logic for the application here
 }

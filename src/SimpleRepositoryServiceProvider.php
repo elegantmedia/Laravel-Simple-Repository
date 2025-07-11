@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace ElegantMedia\SimpleRepository;
 
 use ElegantMedia\SimpleRepository\Commands\RepositoryMakeCommand;
@@ -7,11 +9,32 @@ use Illuminate\Support\ServiceProvider;
 
 class SimpleRepositoryServiceProvider extends ServiceProvider
 {
-	public function register()
+	/**
+	 * Register the service provider.
+	 */
+	public function register(): void
 	{
-		// register `make:repository` only for local environment
-		if ($this->app->environment('local')) {
-			$this->commands(RepositoryMakeCommand::class);
+		$this->mergeConfigFrom(
+			__DIR__ . '/../config/simple-repository.php',
+			'simple-repository'
+		);
+	}
+
+	/**
+	 * Bootstrap the service provider.
+	 */
+	public function boot(): void
+	{
+		if ($this->app->runningInConsole()) {
+			// Register commands
+			$this->commands([
+				RepositoryMakeCommand::class,
+			]);
+
+			// Publish config
+			$this->publishes([
+				__DIR__ . '/../config/simple-repository.php' => config_path('simple-repository.php'),
+			], 'simple-repository-config');
 		}
 	}
 }
