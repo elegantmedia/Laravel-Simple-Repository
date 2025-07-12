@@ -3,220 +3,574 @@
 [![Latest Version on Packagist][ico-version]][link-packagist]
 [![Software License][ico-license]](LICENSE.md)
 
-Simple repository pattern for Laravel's Eloquent models.
+A clean and type-safe implementation of the repository pattern for Laravel 12+ applications.
 
-### Why Repositories?
+## Documentation
 
-You can still use Eloquent queries to fetch models directly. Purpose of Repositories are to offer a standard API (or an interface), so you have a reliable layer between ORM and the controllers. This will reduce duplication and keep code clean on large applications.
+- **[Architecture Guide](docs/ARCHITECTURE.md)** - Understand the design decisions, patterns, and component relationships
+- **[Development Guide](docs/DEVELOPMENT.md)** - Contributing guidelines, testing strategies, and development workflow
+- **[Migration Guide](docs/MIGRATION_GUIDE_v4-v5.md)** - Upgrade from v4.x to v5.x with breaking changes and new features
+- **[Examples](examples/EXAMPLES.md)** - Complete working examples showing real-world usage patterns
+- **[Changelog](CHANGELOG.md)** - Version history and release notes
 
-Here's an example where why you may need this.
+## What is Laravel Simple Repository?
 
-Finding an Eloquent Model by id. Here you limit column names retrived from database.
+Laravel Simple Repository provides a powerful abstraction layer between your application logic and data persistence. It implements the repository pattern with modern PHP features, offering a clean, maintainable, and testable approach to data access.
+
+### Why Use This Package?
+
+- **Separation of Concerns**: Keep your controllers thin and your models focused on business logic by moving data access to dedicated repository classes
+- **Type Safety**: Built with PHP 8.2+ features for full type hinting and IDE autocompletion support
+- **Testability**: Easy to mock and test your data layer without touching the database
+- **Consistency**: Standardized API across all your repositories with common operations pre-built
+- **Flexibility**: Advanced filtering system that doesn't duplicate Laravel's query builder
+- **Performance**: Built-in support for eager loading, pagination, and query optimization
+- **Transaction Safety**: Comprehensive transaction support for data integrity
+
+
+## Repository Methods
+
+### Complete Method Reference
+
+| Method                                                        | Description                                              |
+|---------------------------------------------------------------|----------------------------------------------------------|
+| **Query Building**                                            |                                                          |
+| `newModel()`                                                  | Create a new instance of the model                       |
+| `newQuery()`                                                  | Create a new query builder instance                      |
+| `newFilter($defaults = true)`                                 | Create a new filter instance for complex queries         |
+|                                                               |                                                          |
+| **List/Search Operations**                                    |                                                          |
+| `all($with = [])`                                             | Get all models with optional relationships               |
+| `paginate($perPage = 50, $with = [], $filter = null)`         | Paginate results with optional relationships and filters |
+| `simplePaginate($perPage = 50, $with = [], $filter = null)`   | Simple pagination without total count                    |
+| `search($filter = null)`                                      | Search models using the provided filter                  |
+| `searchByTerm($term)`                                         | Simple search for models by a search term                |
+| `searchPaginated($term, $perPage = 50)`                       | Search models with pagination                            |
+|                                                               |                                                          |
+| **Find Operations**                                           |                                                          |
+| `find($id, $with = [])`                                       | Find a model by its primary key                          |
+| `findByUuid($uuid, $with = [])`                               | Find a model by UUID                                     |
+| `findByField($field, $value, $with = [])`                     | Find a model by a specific field value                   |
+| `findOrCreate($searchAttributes, $additionalAttributes = [])` | Find or create a model with given attributes             |
+| `findOrCreateById($id, $attributes, $idColumn = 'id')`        | Find or create a model by ID                             |
+| `findOrFail($id)`                                             | Find a model by ID or throw exception                    |
+| `findByFieldOrFail($field, $value)`                           | Find by field or throw exception                         |
+| `findWithTrashed($id)`                                        | Find including soft deleted records                      |
+| `findOnlyTrashed($id)`                                        | Find from soft deleted records only                      |
+| `findMany($ids)`                                              | Find multiple models by their primary keys               |
+| `findManyByField($field, $value)`                             | Find multiple models by field value                      |
+|                                                               |                                                          |
+| **Create Operations**                                         |                                                          |
+| `create($attributes)`                                         | Create a new model instance                              |
+| `createMany($records)`                                        | Create multiple model instances                          |
+| `firstOrNew($attributes, $values = [])`                       | Get first matching model or instantiate new              |
+| `firstOrCreate($attributes, $values = [])`                    | Get first matching model or create it                    |
+|                                                               |                                                          |
+| **Update Operations**                                         |                                                          |
+| `updateModel($model, $attributes)`                            | Update a model instance                                  |
+| `updateById($id, $attributes, $idColumn = 'id')`              | Update a model by ID                                     |
+| `updateWhere($where, $data)`                                  | Update models matching conditions                        |
+| `updateOrCreateById($id, $attributes, $idColumn = 'id')`      | Update or create a model by ID                           |
+| `updateOrCreateByUuid($attributes)`                           | Update or create a model by UUID                         |
+| `save($model)`                                                | Save a model instance                                    |
+|                                                               |                                                          |
+| **Delete Operations**                                         |                                                          |
+| `delete($id)`                                                 | Delete a model by ID                                     |
+| `deleteWhere($where)`                                         | Delete models matching conditions                        |
+| `deleteManyByIds($ids)`                                       | Delete multiple models by IDs                            |
+| `restore($id)`                                                | Restore a soft deleted model                             |
+| `forceDelete($id)`                                            | Permanently delete a model                               |
+|                                                               |                                                          |
+| **Aggregate Methods**                                         |                                                          |
+| `sum($column, $where = [])`                                   | Get the sum of a column                                  |
+| `avg($column, $where = [])`                                   | Get the average of a column                              |
+| `min($column, $where = [])`                                   | Get the minimum value of a column                        |
+| `max($column, $where = [])`                                   | Get the maximum value of a column                        |
+| `count($where = [])`                                          | Count models matching conditions                         |
+|                                                               |                                                          |
+| **Utility Methods**                                           |                                                          |
+| `exists($where = [])`                                         | Check if models exist with conditions                    |
+| `value($column, $where = [])`                                 | Get single column value from first result                |
+| `pluck($column, $where = [], $key = null)`                    | Get array of column values                               |
+| `chunk($count, $callback, $where = [])`                       | Process results in chunks                                |
+| `random($count = 1)`                                          | Get random model(s)                                      |
+|                                                               |                                                          |
+| **Transaction Methods**                                       |                                                          |
+| `withTransaction($enabled = true)`                            | Enable/disable automatic transaction wrapping            |
+| `transaction($callback)`                                      | Execute callback within a transaction                    |
+| `beginTransaction()`                                          | Start a new database transaction                         |
+| `commit()`                                                    | Commit the active transaction                            |
+| `rollback()`                                                  | Rollback the active transaction                          |
+| `transactionLevel()`                                          | Get number of active transactions                        |
+|                                                               |                                                          |
+| **Model Information**                                         |                                                          |
+| `getModelClass()`                                             | Get the fully qualified class name                       |
+| `getModel()`                                                  | Get the model instance                                   |
+
+## Filter Methods
+
+The SearchFilter class provides powerful query building capabilities through composition. These methods can be chained to build complex queries.
+
+### Laravel Query Builder Methods
+
+**Important**: The SearchFilter class automatically inherits ALL Laravel query builder methods through composition. This means you can use any Eloquent query builder method like `where()`, `whereIn()`, `whereNull()`, `whereBetween()`, `whereHas()`, `orderBy()`, `with()`, `select()`, `join()`, `groupBy()`, and many more without us having to duplicate them in our codebase.
+
+```php
+// All Laravel query builder methods are available
+$filter = $repository->newFilter()
+    ->where('status', 'active')
+    ->whereIn('role', ['admin', 'moderator'])
+    ->whereHas('posts', function ($query) {
+        $query->where('published', true);
+    })
+    ->with(['profile', 'posts'])
+    ->orderBy('created_at', 'desc')
+    ->select('id', 'name', 'email');
 ```
-$person = Person::find(1, ['first_name', 'last_name']);
+
+### Repository-Specific Filter Methods
+
+These are custom methods provided by the repository pattern that enhance the filtering experience:
+
+| Method                          | Description                              |
+|---------------------------------|------------------------------------------|
+| `setKeyword($keyword)`          | Set search keyword for searchable models |
+| `setSortBy($field)`             | Set the default sort field               |
+| `setSortDirection($direction)`  | Set sort direction ('asc' or 'desc')     |
+| `setPaginate($paginate = true)` | Enable/disable pagination                |
+| `setPerPage($perPage)`          | Set items per page (max 100)             |
+
+### Date Filtering Methods
+
+These methods are available through the `DateFilterableTrait` and provide convenient date-based filtering:
+
+| Method                                                   | Description                                         |
+|----------------------------------------------------------|-----------------------------------------------------|
+| `whereDateIs($date, $column = 'created_at')`             | Filter where date equals the given date             |
+| `whereDateTimeIs($dateTime, $column = 'created_at')`     | Filter where datetime equals the given datetime     |
+| `whereDateBefore($date, $column = 'created_at')`         | Filter where date is before the given date          |
+| `whereDateAfter($date, $column = 'created_at')`          | Filter where date is after the given date           |
+| `whereDateBetween($start, $end, $column = 'created_at')` | Filter where date is between two dates (inclusive)  |
+| `whereDateInPeriod($period, $column = 'created_at')`     | Filter where date is within a Carbon period         |
+| `whereDateWithin($interval, $column = 'created_at')`     | Filter within interval from now (e.g., last 7 days) |
+| `whereDateToday($column = 'created_at')`                 | Filter records created today                        |
+| `whereDateYesterday($column = 'created_at')`             | Filter records created yesterday                    |
+| `whereDateThisWeek($column = 'created_at')`              | Filter records created this week                    |
+| `whereDateLastWeek($column = 'created_at')`              | Filter records created last week                    |
+| `whereDateThisMonth($column = 'created_at')`             | Filter records created this month                   |
+| `whereDateLastMonth($column = 'created_at')`             | Filter records created last month                   |
+| `whereDateThisYear($column = 'created_at')`              | Filter records created this year                    |
+| `whereDateLastYear($column = 'created_at')`              | Filter records created last year                    |
+| `whereDateLastDays($days, $column = 'created_at')`       | Filter records created in the last N days           |
+| `whereDateLastHours($hours, $column = 'created_at')`     | Filter records created in the last N hours          |
+| `whereDateLastMinutes($minutes, $column = 'created_at')` | Filter records created in the last N minutes        |
+
+### Financial Date Filtering Methods
+
+These methods are available through the `FinancialDateFilterableTrait` and provide financial period filtering:
+
+| Method                                                               | Description                                        |
+|----------------------------------------------------------------------|----------------------------------------------------|
+| `whereDateThisQuarter($column = 'created_at')`                       | Filter records created this quarter                |
+| `whereDateLastQuarter($column = 'created_at')`                       | Filter records created last quarter                |
+| `whereDateInQuarter($quarter, $year = null, $column = 'created_at')` | Filter records in a specific quarter (1-4)         |
+| `whereDateInThisFinancialYear($column = 'created_at')`               | Filter records in current financial year (Jul-Jun) |
+| `whereDateInLastFinancialYear($column = 'created_at')`               | Filter records in last financial year              |
+| `whereDateInFinancialYear($endingYear, $column = 'created_at')`      | Filter records in specific financial year          |
+
+### Usage Examples
+
+```php
+// Create a filter with date conditions
+$filter = $repository->newFilter()
+    ->whereDateThisMonth()
+    ->whereDateInThisFinancialYear('revenue_date')
+    ->where('status', 'active')
+    ->orderBy('created_at', 'desc');
+
+// Apply the filter
+$results = $repository->search($filter);
 ```
 
-You can also do it with a repository, but to fetch relationships (which is a lot more common in large applications).
+## Detailed Usage Examples
+
+### Query Building Methods
+
+```php
+// newModel() - Create a new model instance without saving
+$user = $repository->newModel();
+$user->name = 'John Doe';
+$user->email = 'john@example.com';
+$repository->save($user);
+
+// newQuery() - Get a query builder for complex operations
+$query = $repository->newQuery()
+    ->where('active', true)
+    ->whereYear('created_at', 2024);
+$count = $query->count();
+
+// newFilter() - Create a reusable filter
+$activeUsersFilter = $repository->newFilter()
+    ->where('status', 'active')
+    ->where('verified', true);
 ```
-$peopleRepo = new PeopleRepository();
-$person = $peopleRepo->find(1, ['profile', 'employee_records']); 
+
+### When to Use newFilter() vs newQuery()
+
+#### Use `newFilter()` for:
+- **Search and filtering operations** - When you need to build complex search queries
+- **Reusable query configurations** - When you want to define a filter once and use it multiple times
+- **Dynamic queries** - When building queries based on user input or request parameters
+- **Paginated results** - When you need built-in pagination control
+- **Repository pattern adherence** - When you want to maintain clean separation of concerns
+
+```php
+// Example: Building a reusable filter for search operations
+$filter = $repository->newFilter()
+    ->setKeyword('Laravel')
+    ->where('status', 'active')
+    ->whereIn('category', ['tutorial', 'guide'])
+    ->whereDateThisMonth()
+    ->setSortBy('views')
+    ->setSortDirection('desc')
+    ->setPaginate(true)
+    ->setPerPage(20);
+
+// Use the filter with repository methods
+$results = $repository->search($filter);  // Returns paginated results
+$allResults = $repository->paginate(50, [], $filter);  // Custom pagination
 ```
 
-Then on the repository, you can add some common checks such as checking authorisation, filtering data based on what you retrieve etc.
+#### Use `newQuery()` for:
+- **Direct query operations** - When you need raw access to Laravel's query builder
+- **Custom aggregations** - When the repository's aggregate methods aren't sufficient
+- **Complex joins or subqueries** - When you need advanced SQL operations
+- **One-off queries** - When you don't need the filter's features
+- **Performance-critical operations** - When you need maximum control over the query
 
+```php
+// Example: Direct query builder for custom operations
+$query = $repository->newQuery()
+    ->select('department', DB::raw('COUNT(*) as total'))
+    ->where('active', true)
+    ->groupBy('department')
+    ->having('total', '>', 10);
 
+$departments = $query->get();
 
-## Install
+// Example: Complex join operation
+$results = $repository->newQuery()
+    ->join('posts', 'users.id', '=', 'posts.user_id')
+    ->where('posts.published', true)
+    ->whereYear('posts.created_at', 2024)
+    ->select('users.*', DB::raw('COUNT(posts.id) as post_count'))
+    ->groupBy('users.id')
+    ->orderBy('post_count', 'desc')
+    ->limit(10)
+    ->get();
+```
 
-Install via Composer
+#### Key Differences:
 
-``` bash
+| Feature             | newFilter()                                  | newQuery()                                |
+|---------------------|----------------------------------------------|-------------------------------------------|
+| **Purpose**         | Search and filtering with repository pattern | Direct Eloquent query builder access      |
+| **Return Type**     | FilterableInterface                          | Eloquent\Builder                          |
+| **Pagination**      | Built-in pagination control                  | Manual pagination required                |
+| **Reusability**     | Designed for reuse                           | One-time use                              |
+| **Search Features** | `setKeyword()` for model's searchable fields | Manual search implementation              |
+| **Method Chaining** | Repository-specific + Laravel methods        | Only Laravel query builder methods        |
+| **Best For**        | Application search features, API filters     | Complex SQL, performance-critical queries |
+
+### Pagination Methods
+
+```php
+// paginate() - Standard Laravel pagination with total count
+$users = $repository->paginate(20); // 20 items per page
+$users = $repository->paginate(20, ['profile', 'posts']); // With eager loading
+$users = $repository->paginate(20, [], $filter); // With custom filter
+
+// simplePaginate() - More efficient pagination without total count
+$users = $repository->simplePaginate(50); // Faster for large datasets
+$users = $repository->simplePaginate(50, ['profile']); // With relations
+```
+
+### Search Methods
+
+```php
+// search() - Flexible search that respects filter's pagination setting
+$filter = $repository->newFilter()
+    ->setKeyword('john')
+    ->setPaginate(true)
+    ->setPerPage(20);
+$results = $repository->search($filter); // Returns LengthAwarePaginator
+
+$filter->setPaginate(false);
+$results = $repository->search($filter); // Returns Collection
+
+// searchByTerm() - Simple search returning all results
+$users = $repository->searchByTerm('john@example.com'); // Returns Collection
+// Good for autocomplete, dropdowns, or small result sets
+
+// searchPaginated() - Always returns paginated results
+$results = $repository->searchPaginated('john', 25); // 25 per page
+$results = $repository->searchPaginated('admin', 10); // 10 per page
+// Perfect for search results pages, data tables
+```
+
+### Update Methods
+
+```php
+// updateModel() - Update an existing model instance
+$user = $repository->find(1);
+$updated = $repository->updateModel($user, [
+    'name' => 'Jane Doe',
+    'email' => 'jane@example.com'
+]);
+
+// updateById() - Update without fetching the model first
+$updated = $repository->updateById(1, [
+    'last_login' => now(),
+    'login_count' => DB::raw('login_count + 1')
+]);
+
+// updateWhere() - Bulk update with conditions
+$affectedRows = $repository->updateWhere(
+    ['status' => 'pending', 'created_at' => '<', now()->subDays(7)],
+    ['status' => 'expired']
+);
+```
+
+### Aggregate Methods
+
+```php
+// sum() - Calculate sum of a column
+$totalRevenue = $repository->sum('revenue');
+$monthlyRevenue = $repository->sum('revenue', [
+    'created_at' => '>=', now()->startOfMonth()
+]);
+
+// avg() - Calculate average
+$averagePrice = $repository->avg('price');
+$averageRating = $repository->avg('rating', ['status' => 'published']);
+
+// min() - Get minimum value
+$lowestPrice = $repository->min('price');
+$earliestDate = $repository->min('created_at', ['status' => 'active']);
+```
+
+### Utility Methods
+
+```php
+// exists() - Check if records exist
+if ($repository->exists(['email' => 'john@example.com'])) {
+    // Email already taken
+}
+
+// value() - Get a single column value
+$userName = $repository->value('name', ['id' => 1]);
+$latestLogin = $repository->value('last_login', ['email' => 'john@example.com']);
+
+// pluck() - Get array of values
+$names = $repository->pluck('name'); // Collection of all names
+$emailsByName = $repository->pluck('email', [], 'name'); // Keyed by name
+$activeEmails = $repository->pluck('email', ['status' => 'active']);
+
+// chunk() - Process large datasets efficiently
+$repository->chunk(1000, function ($users) {
+    foreach ($users as $user) {
+        // Process each user
+        Mail::to($user)->send(new Newsletter());
+    }
+}, ['subscribed' => true]);
+
+// random() - Get random records
+$randomUser = $repository->random(); // Single random model
+$randomUsers = $repository->random(5); // Collection of 5 random models
+```
+
+### Transaction Methods
+
+```php
+// withTransaction() - Enable automatic transactions
+$repository->withTransaction(); // Enable
+$user = $repository->create(['name' => 'John']); // Wrapped in transaction
+$repository->updateModel($user, ['verified' => true]); // Also wrapped
+$repository->withTransaction(false); // Disable
+
+// transaction() - Callback-based transactions
+$result = $repository->transaction(function ($repo) {
+    $user = $repo->create(['name' => 'Jane']);
+    $profile = $repo->create(['user_id' => $user->id]);
+    
+    if (!$user->isValid()) {
+        throw new \Exception('Invalid user');
+    }
+    
+    return $user;
+}); // Automatically rolled back on exception
+```
+
+### Filter-Specific Methods
+
+```php
+// setKeyword() - Search in model's searchable fields
+$filter = $repository->newFilter()
+    ->setKeyword('john doe'); // Searches in fields defined by model
+
+// setSortBy() and setSortDirection()
+$filter->setSortBy('created_at')
+    ->setSortDirection('desc'); // Latest first
+
+// setPaginate() - Control pagination behavior
+$filter->setPaginate(true); // Enable pagination
+$filter->setPaginate(false); // Disable - returns all results
+
+// setPerPage() - Control page size
+$filter->setPerPage(100); // Max 100 items per page
+$filter->setPerPage(10); // 10 items per page
+```
+
+### Date Filtering Examples
+
+```php
+use Carbon\Carbon;
+use Carbon\CarbonPeriod;
+
+// whereDateIs() - Exact date match
+$filter = $repository->newFilter()
+    ->whereDateIs(Carbon::parse('2024-01-15')); // All records from Jan 15, 2024
+
+// whereDateInPeriod() - Using Carbon periods
+$period = CarbonPeriod::create('2024-01-01', '2024-01-31');
+$filter = $repository->newFilter()
+    ->whereDateInPeriod($period); // All January 2024 records
+
+// Custom column filtering
+$filter = $repository->newFilter()
+    ->whereDateIs(Carbon::today(), 'published_at')
+    ->whereDateInPeriod($period, 'approved_at');
+```
+
+## Quick Start
+
+### Installation
+
+```bash
 composer require elegantmedia/laravel-simple-repository
 ```
 
-## Usage
+### Configuration
 
-### Repository Generator
+Publish the configuration file to customize default settings:
 
-Create a new repository with `make:repository` command. By default, they'll be stored in `Models` directory.
-
-``` php
-php artisan make:repository Car
-
-// this will create
-app/Models/CarsRepository.php
+```bash
+php artisan vendor:publish --provider="ElegantMedia\SimpleRepository\SimpleRepositoryServiceProvider" --tag="simple-repository-config"
 ```
 
-The following options are also available.
+This will create `config/simple-repository.php` where you can configure:
 
-``` php
-// overwrite existing file
-php artisan make:repository Car --force
+- **Default Pagination**: Set default `per_page` and `max_per_page` values
+- **Default Sorting**: Configure default sort field and direction
+- **Search Settings**: Customize search query parameter and case sensitivity
+- **Repository Command**: Set default directory and repository suffix for generated files
 
-// change the default directory to `Entities`
-php artisan make:repository Car --dir Entities
+Example configuration:
+
+```php
+return [
+    'defaults' => [
+        'pagination' => [
+            'per_page' => 50,
+            'max_per_page' => 100,
+        ],
+        'sorting' => [
+            'field' => 'created_at',
+            'direction' => 'desc',
+        ],
+    ],
+    'search' => [
+        'query_parameter' => 'q',
+        'case_sensitive' => false,
+    ],
+    'command' => [
+        'directory' => 'Models',
+        'suffix' => 'Repository',
+    ],
+];
 ```
 
-By default, the the related model will be **guessed**. For example, if you're creating `CarsRepository` we can assume the associated model will be `Car` in the same directory. But if you want to change it, you can pass that as an argument.
+### Basic Usage
 
-``` php
-// change default associated model
-php artisan make:repository Car --model Vehicles\\SuperCar
+#### 1. Create a repository:
+
+```bash
+php artisan make:repository User
 ```
 
-To keep folders clean, you can group the Model+Repository to a single folder.
+#### 2. Use in your controller:
 
-``` php 
-php artisan make:repository Car --group
-```
+```php
+<?php
 
-When you do this, a new plural directory will be automatically created. For example, `Cars` in this example. The file structure can look like this.
+namespace App\Http\Controllers;
 
-``` 
-// command
-php artisan make:repository Car --dir Entities --group
+use App\Models\UsersRepository;
 
-// file structure (Car.php is an example and created by this command)
-app/Entities/Cars/CarsRepository.php
-app/Entities/Cars/Car.php
-```
-
-# Search
-
-### Model
-
-To add basic SQL `LIKE` search to a model, add the `SearchableLike` trait to a model.
-
-```
-namespace App\Models\User;
-
-use Illuminate\Database\Eloquent\Model;
-use ElegantMedia\SimpleRepository\Search\Eloquent\SearchableLike;
-
-class User Extends Model 
+class UserController extends Controller
 {
+    public function __construct(
+        private UsersRepository $users
+    ) {}
 
-	use SearchableLike;
-	
-	protected $searchable = [
-		'name',
-		'email',
-	];
+    public function index()
+    {
+        return $this->users->paginate(20);
+    }
 
+    public function show(int $id)
+    {
+        return $this->users->findOrFail($id);
+    }
 }
 ```
 
-Now you can do SQL based keyword searches on Models directly.
+#### 3. Add search to your model:
 
-```
-use App\Models\User;
-
-// get all users where `name` or `email` matches `john`
-// This will return a paginator
-$users = User::search('john');
-```
-
-### Repository
-
-You can call `search` on a repository to build advanced reusable filters.
-
-First, setup the repository
-```
+```php
 <?php
 
 namespace App\Models;
 
-use ElegantMedia\SimpleRepository\SimpleBaseRepository as BaseRepository;
+use Illuminate\Database\Eloquent\Model;
+use ElegantMedia\SimpleRepository\Search\Traits\SearchableLike;
 
-class UsersRepository extends BaseRepository
+class User extends Model
 {
+    use SearchableLike;
 
-	// bind the model to the Repository
-	public function __construct(User $model)
-	{
-		parent::__construct($model);
-	}
-
+    protected array $searchable = [
+        'name',
+        'email',
+    ];
 }
 ```
 
-Then call search on your repository. Usually this happens from a controller or a parent repository.
+#### 4. Search with filters:
 
-```
-use App\Models\UsersRepository;
-use App\Models\User;
+```php
+$filter = $repository->newFilter()
+    ->where('status', 'active')
+    ->with(['posts', 'comments'])
+    ->setSortBy('created_at');
 
-$repo = app(UsersRepository::class);
-
-$keyword = 'jane';
-
-// Example: Get paginated results of all Users, that has a `name` or `email` LIKE `jane`
-$matchedUsers = User::search($keyword)->paginate();
-
-// Same result can be achieved with the repository. 
-// If a null value is passed, it will get the `q` parameter from Request as the keyword
-$matchedUsers = $repo->search();
+$users = $repository->search($filter);
 ```
 
-Because the SearchFilter is a query itself, you can use it to chain conditions.
-```
-$filter = $repo->newSearchFilter();
-
-// Example: Get results, `with` related models
-$filter->with(['roles', 'projects']);
-
-// Example: Only include Users, if `projects` have a status of `completed`
-$filter->whereHas('projects', function($q) {
-	$q->where('status', 'completed');
-});
-
-// Paginated results
-$users = $repo->search($filter);
-
-// Change results per page
-$filter->setPerPage(100):
-
-// Non-paginated results
-$filter->paginate(false);
-$users = $repo->search($filter);
-```
-
-The default filter will add `q` from query string, and sort results in descending order. If you don't want that, create a filter without the defaults.
-
-```
-$filter = $repo->newSearchFilter(false);
-```
-
-## Change log
-
-See [CHANGELOG](CHANGELOG.md) for more information on what has changed recently.
-
-## Development
-
-### Code Style
-
-This package uses PHP CS Fixer to maintain consistent code style. The configuration follows PSR-12 standards with additional Laravel-friendly rules.
-
-To check code style:
-```bash
-composer check-style
-```
-
-To automatically fix code style issues:
-```bash
-composer fix-style
-```
-
-### Testing
-
-Run the test suite:
-```bash
-composer test
-```
 
 ## Contributing
 
-See [CONTRIBUTING](.github/CONTRIBUTING.md) and for details.
+Please see [CONTRIBUTING](.github/CONTRIBUTING.md) for details.
 
 ## License
 
@@ -224,15 +578,5 @@ The MIT License (MIT). Please see [License File](LICENSE.md) for more informatio
 
 [ico-version]: https://img.shields.io/packagist/v/elegantmedia/laravel-simple-repository.svg?style=flat-square
 [ico-license]: https://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat-square
-[ico-travis]: https://img.shields.io/travis/elegantmedia/laravel-simple-repository/master.svg?style=flat-square
-[ico-scrutinizer]: https://img.shields.io/scrutinizer/coverage/g/elegantmedia/laravel-simple-repository.svg?style=flat-square
-[ico-code-quality]: https://img.shields.io/scrutinizer/g/elegantmedia/laravel-simple-repository.svg?style=flat-square
-[ico-downloads]: https://img.shields.io/packagist/dt/elegantmedia/laravel-simple-repository.svg?style=flat-square
 
 [link-packagist]: https://packagist.org/packages/elegantmedia/laravel-simple-repository
-[link-travis]: https://travis-ci.org/elegantmedia/laravel-simple-repository
-[link-scrutinizer]: https://scrutinizer-ci.com/g/elegantmedia/laravel-simple-repository/code-structure
-[link-code-quality]: https://scrutinizer-ci.com/g/elegantmedia/laravel-simple-repository
-[link-downloads]: https://packagist.org/packages/elegantmedia/laravel-simple-repository
-[link-author]: https://github.com/elegantmedia
-[link-contributors]: ../../contributors
