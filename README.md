@@ -3,7 +3,7 @@
 [![Latest Version on Packagist][ico-version]][link-packagist]
 [![Software License][ico-license]](LICENSE.md)
 [![CI Status](https://github.com/elegantmedia/Laravel-Simple-Repository/actions/workflows/ci.yml/badge.svg)](https://github.com/elegantmedia/Laravel-Simple-Repository/actions/workflows/ci.yml)
-[![Code Coverage](https://codecov.io/gh/elegantmedia/Laravel-Simple-Repository/branch/main/graph/badge.svg)](https://codecov.io/gh/elegantmedia/Laravel-Simple-Repository)
+[![Code Coverage](https://codecov.io/gh/elegantmedia/Laravel-Simple-Repository/branch/v5.x/graph/badge.svg)](https://codecov.io/gh/elegantmedia/Laravel-Simple-Repository)
 
 A clean and type-safe implementation of the repository pattern for Laravel 12+ applications.
 
@@ -588,5 +588,4 @@ The MIT License (MIT). Please see [License File](LICENSE.md) for more informatio
 
 [ico-version]: https://img.shields.io/packagist/v/elegantmedia/laravel-simple-repository.svg?style=flat-square
 [ico-license]: https://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat-square
-
 [link-packagist]: https://packagist.org/packages/elegantmedia/laravel-simple-repository
