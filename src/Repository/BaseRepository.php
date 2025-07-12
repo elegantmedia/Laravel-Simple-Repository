@@ -683,6 +683,7 @@ abstract class BaseRepository implements RepositoryInterface
 
 	/**
 	 * {@inheritdoc}
+	 *
 	 * @return Model|Collection<int, Model>|null
 	 */
 	public function random(int $count = 1): Model|Collection|null
