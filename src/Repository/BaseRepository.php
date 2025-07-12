@@ -136,10 +136,20 @@ abstract class BaseRepository implements RepositoryInterface
 			$filter = $this->newFilter();
 		}
 
+		// Check if the filter is a SearchFilter instance that has a get() method
+		if ($filter instanceof \ElegantMedia\SimpleRepository\Search\Filters\SearchFilter) {
+			return $filter->get();
+		}
+
+		// Fallback for other filter implementations
 		$query = $this->newQuery();
 		$filter->apply($query);
 
-		return $filter->get();
+		if ($filter->shouldPaginate()) {
+			return $query->paginate($filter->getPerPage());
+		}
+
+		return $query->get();
 	}
 
 	/**
@@ -260,7 +270,7 @@ abstract class BaseRepository implements RepositoryInterface
 		$model = $this->findByField($field, $value);
 
 		if ($model === null) {
-			throw (new ModelNotFoundException())->setModel($this->getModelClass(), [$field => $value]);
+			throw (new ModelNotFoundException())->setModel($this->getModelClass());
 		}
 
 		return $model;
@@ -673,9 +683,11 @@ abstract class BaseRepository implements RepositoryInterface
 
 	/**
 	 * {@inheritdoc}
+	 * @return Model|Collection<int, Model>|null
 	 */
 	public function random(int $count = 1): Model|Collection|null
 	{
+		/** @var Collection<int, Model> $result */
 		$result = $this->newQuery()->inRandomOrder()->limit($count)->get();
 
 		if ($count === 1) {

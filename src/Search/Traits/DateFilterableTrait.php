@@ -95,7 +95,7 @@ trait DateFilterableTrait
 		$start = $period->getStartDate();
 		$end = $period->getEndDate();
 
-		if (!$start || !$end) {
+		if ($end === null) {
 			throw InvalidDateRangeException::nullDatesInRange($column);
 		}
 
