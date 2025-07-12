@@ -260,6 +260,6 @@ If you need to rollback to v4:
 
 If you encounter issues during migration:
 
-1. Check the [GitHub Issues](https://github.com/elegantmedia/laravel-simple-repository/issues)
+1. Check the [GitHub Issues](https://github.com/elegantmedia/Laravel-Simple-Repository/issues)
 2. Review the [examples](USAGE.md) in the documentation
 3. Open a new issue with details about your migration problem

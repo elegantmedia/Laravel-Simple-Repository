@@ -1,0 +1,29 @@
+parameters:
+    level: 5
+    paths:
+        - src
+    excludePaths:
+        - src/Commands/stubs/*
+    reportUnmatchedIgnoredErrors: false
+    bootstrapFiles:
+        - phpstan-bootstrap.php
+    ignoreErrors:
+        # Ignore Laravel helper functions
+        - '#Function (config|app_path|config_path) not found#'
+        # Ignore errors about missing Eloquent methods
+        - '#Call to an undefined method Illuminate\\Database\\Eloquent\\Builder#'
+        - '#Call to an undefined method Illuminate\\Database\\Query\\Builder#'
+        # Ignore errors about dynamic properties on models
+        - '#Access to an undefined property Illuminate\\Database\\Eloquent\\Model#'
+        # Ignore errors about Repository interface methods
+        - '#Method .* return type has no value type specified in iterable type#'
+        # Ignore missing iterable value types
+        - '#Method .* return type with generic .* does not specify its types#'
+        # Ignore PHPDoc tag mismatch
+        - '#PHPDoc tag @param has invalid value#'
+        # Ignore missing parameter types
+        - '#Method .* has parameter .* with no type specified#'
+        # Ignore missing return types for magic methods
+        - '#Method .*__call\(\) has no return type specified#'
+        # Ignore unused trait
+        - '#Trait .* is used zero times#'

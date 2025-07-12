@@ -31,3 +31,31 @@ The package includes comprehensive tests covering:
 - **Transactions**: Automatic wrapping, manual control, callbacks, and nested transactions
 
 Tests use an in-memory SQLite database for fast, isolated test execution.
+
+
+## CI/CD Pipeline
+
+This package uses GitHub Actions for continuous integration and deployment:
+
+- **Tests**: Run on every push and pull request for PHP 8.2, 8.3, and 8.4 with Laravel 12
+- **Code Style**: PHP CS Fixer ensures consistent code formatting
+- **Static Analysis**: PHPStan (level 5) checks for potential bugs
+- **Scheduled Tests**: Weekly tests to catch breaking changes from dependencies
+- **Automated Releases**: Tags are automatically published as GitHub releases
+- **Dependency Updates**: Dependabot keeps dependencies up to date
+
+### Running CI Locally
+
+```bash
+# Run tests
+composer test
+
+# Check code style
+composer check-style
+
+# Fix code style
+composer fix-style
+
+# Run static analysis
+composer analyse
+```

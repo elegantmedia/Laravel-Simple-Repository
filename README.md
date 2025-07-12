@@ -2,6 +2,8 @@
 
 [![Latest Version on Packagist][ico-version]][link-packagist]
 [![Software License][ico-license]](LICENSE.md)
+[![CI Status](https://github.com/elegantmedia/Laravel-Simple-Repository/actions/workflows/ci.yml/badge.svg)](https://github.com/elegantmedia/Laravel-Simple-Repository/actions/workflows/ci.yml)
+[![Code Coverage](https://codecov.io/gh/elegantmedia/Laravel-Simple-Repository/branch/main/graph/badge.svg)](https://codecov.io/gh/elegantmedia/Laravel-Simple-Repository)
 
 A clean and type-safe implementation of the repository pattern for Laravel 12+ applications.
 
@@ -566,7 +568,6 @@ $filter = $repository->newFilter()
 
 $users = $repository->search($filter);
 ```
-
 
 ## Contributing
 

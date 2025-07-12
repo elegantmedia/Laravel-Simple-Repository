@@ -2,7 +2,7 @@
 
 Contributions are **welcome** and will be fully **credited**.
 
-We accept contributions via Pull Requests on [Github](https://github.com/elegantmedia/laravel-simple-repository).
+We accept contributions via Pull Requests on [Github](https://github.com/elegantmedia/Laravel-Simple-Repository).
 
 
 ## Pull Requests
