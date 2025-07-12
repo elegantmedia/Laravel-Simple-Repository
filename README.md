@@ -7,6 +7,15 @@
 
 A clean and type-safe implementation of the repository pattern for Laravel 12+ applications.
 
+## Version Compatibility
+
+| Package Version | Laravel Version | PHP Version | Branch |
+|-----------------|-----------------|-------------|--------|
+| 5.x             | 12.x            | ^8.2        | v5.x   |
+| 4.x             | 11.x            | ^8.2        | v4.x   |
+| 3.x             | 10.x            | ^8.1        | master |
+| 2.x             | 9.x             | ^8.0        | master |
+
 ## Documentation
 
 - **[Architecture Guide](docs/ARCHITECTURE.md)** - Understand the design decisions, patterns, and component relationships
