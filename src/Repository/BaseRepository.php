@@ -130,7 +130,7 @@ abstract class BaseRepository implements RepositoryInterface
 	/**
 	 * {@inheritdoc}
 	 */
-	public function search(?FilterableInterface $filter = null): LengthAwarePaginator|Collection
+	public function search(?FilterableInterface $filter = null): LengthAwarePaginator|Paginator|Collection
 	{
 		if ($filter === null) {
 			$filter = $this->newFilter();
@@ -161,19 +161,32 @@ abstract class BaseRepository implements RepositoryInterface
 		$filter->setKeyword($term);
 		$filter->setPaginate(false);
 
-		return $this->search($filter);
+		$results = $this->search($filter);
+
+		if ($results instanceof Collection) {
+			return $results;
+		}
+
+		// Guarantee a collection is returned even if a paginator sneaks through.
+		return new Collection($results->items());
 	}
 
 	/**
 	 * {@inheritdoc}
 	 */
-	public function searchPaginated(string $term, int $perPage = 50): LengthAwarePaginator
+	public function searchPaginated(string $term, int $perPage = 50): LengthAwarePaginator|Paginator
 	{
 		$filter = $this->newFilter();
 		$filter->setKeyword($term);
 		$filter->setPerPage($perPage);
 
-		return $this->search($filter);
+		$results = $this->search($filter);
+
+		if ($results instanceof LengthAwarePaginator || $results instanceof Paginator) {
+			return $results;
+		}
+
+		throw new \LogicException('Paginated searches must return a paginator instance.');
 	}
 
 	/**
