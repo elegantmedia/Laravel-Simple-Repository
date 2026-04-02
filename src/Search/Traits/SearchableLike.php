@@ -9,25 +9,31 @@ use Illuminate\Database\Eloquent\Builder;
 trait SearchableLike
 {
 	/**
-	 * Fields that can be searched using LIKE queries.
+	 * Override fields that can be searched using LIKE queries.
 	 *
-	 * @var array<string>
+	 * This exists so consumers can call `setSearchableFields()` at runtime without
+	 * forcing a `$searchable` property onto the consuming model (which would
+	 * conflict if the model already defines it).
+	 *
+	 * @var array<string>|null
 	 */
-	protected array $searchable = [];
+	protected ?array $searchableOverride = null;
 
 	/**
 	 * Search by keyword across searchable fields.
 	 */
 	public function scopeSearchByKeyword(Builder $query, ?string $keyword): Builder
 	{
-		if (empty($keyword) || empty($this->searchable)) {
+		$searchableFields = $this->getSearchableFields();
+
+		if (empty($keyword) || empty($searchableFields)) {
 			return $query;
 		}
 
-		return $query->where(function (Builder $query) use ($keyword) {
+		return $query->where(function (Builder $query) use ($keyword, $searchableFields) {
 			$keyword = '%' . $keyword . '%';
 
-			foreach ($this->searchable as $index => $field) {
+			foreach ($searchableFields as $index => $field) {
 				if ($index === 0) {
 					$query->where($field, 'LIKE', $keyword);
 				} else {
@@ -44,7 +50,23 @@ trait SearchableLike
 	 */
 	public function getSearchableFields(): array
 	{
-		return $this->searchable;
+		if ($this->searchableOverride !== null) {
+			return $this->searchableOverride;
+		}
+
+		// Allow consuming models to define their own `$searchable` property without
+		// trait property conflicts.
+		if (property_exists($this, 'searchable')) {
+			/** @var mixed $fields */
+			$fields = $this->searchable;
+
+			if (is_array($fields)) {
+				// Best-effort normalization: ensure we return array<string>.
+				return array_values(array_filter($fields, static fn ($value): bool => is_string($value) && $value !== ''));
+			}
+		}
+
+		return [];
 	}
 
 	/**
@@ -54,7 +76,7 @@ trait SearchableLike
 	 */
 	public function setSearchableFields(array $fields): self
 	{
-		$this->searchable = $fields;
+		$this->searchableOverride = $fields;
 
 		return $this;
 	}
