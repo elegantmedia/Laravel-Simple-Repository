@@ -37,7 +37,7 @@ Tests use an in-memory SQLite database for fast, isolated test execution.
 
 This package uses GitHub Actions for continuous integration and deployment:
 
-- **Tests**: Run on every push and pull request for PHP 8.2, 8.3, and 8.4 with Laravel 12
+- **Tests**: Run on every push and pull request for PHP 8.3 and 8.4 with Laravel 13
 - **Code Style**: PHP CS Fixer ensures consistent code formatting
 - **Static Analysis**: PHPStan (level 5) checks for potential bugs
 - **Scheduled Tests**: Weekly tests to catch breaking changes from dependencies

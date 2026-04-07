@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## [6.0.0] - 2026-04-07
+
+### ⚠️ Breaking Changes
+- Requires PHP 8.3+ and Laravel 13.x
+- Upgrade from `elegantmedia/laravel-simple-repository:^5.0` to `^6.0`
+
+### Changed
+- Updated all direct `illuminate/*` package constraints to Laravel 13
+- Refreshed the Composer lockfile against the Laravel 13 dependency set
+- Updated CI workflows, examples, and package documentation for the `v6.x` release line
+
 ## [5.0.0] - 2025-01-12
 
 ### ⚠️ Breaking Changes

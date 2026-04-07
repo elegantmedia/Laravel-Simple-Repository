@@ -1,19 +1,13 @@
 {
     "name": "elegantmedia/laravel-simple-repository",
     "type": "library",
-    "description": "Lightweight Repository pattern for Laravel 12+ projects with strict typing and modern PHP features.",
+    "description": "Lightweight Repository pattern for Laravel 13+ projects with strict typing and modern PHP features.",
     "keywords": [
         "elegantmedia",
         "emedia",
         "laravel-simple-repository",
         "repository",
-        "repositories",
-        "pattern",
-        "eloquent",
-        "laravel8",
-        "orm",
-        "l5repository",
-        "generator"
+        "repositories"
     ],
     "homepage": "https://github.com/elegantmedia/Laravel-Simple-Repository",
     "license": "MIT",
@@ -25,15 +19,15 @@
         }
     ],
     "require": {
-        "php": "^8.2",
-        "illuminate/console": "^12.0",
-        "illuminate/database": "^12.0",
-        "illuminate/support": "^12.0"
+        "php": "^8.3",
+        "illuminate/console": "^13.0",
+        "illuminate/database": "^13.0",
+        "illuminate/support": "^13.0"
     },
     "require-dev": {
         "friendsofphp/php-cs-fixer": "^3.40",
-        "illuminate/http": "^12.0",
-        "illuminate/pagination": "^12.0",
+        "illuminate/http": "^13.0",
+        "illuminate/pagination": "^13.0",
         "phpstan/phpstan": "^2.0",
         "phpunit/phpunit": "^11.5",
         "ramsey/uuid": "^4.7"
@@ -53,8 +47,8 @@
         "test:coverage": "phpunit",
         "check-style": "php-cs-fixer fix --config=.php-cs-fixer.php --dry-run --diff",
         "fix-style": "php-cs-fixer fix --config=.php-cs-fixer.php",
-        "analyse": "phpstan analyse",
-        "phpstan": "phpstan analyse"
+        "analyse": "phpstan analyse --memory-limit=1G",
+        "phpstan": "phpstan analyse --memory-limit=1G"
     },
     "extra": {
         "laravel": {

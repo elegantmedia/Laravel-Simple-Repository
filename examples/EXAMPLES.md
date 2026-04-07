@@ -234,7 +234,7 @@ class CarRepositoryTest extends TestCase
 
 ## Notes
 
-- These examples use Laravel 12 conventions and patterns
+- These examples use Laravel 13 conventions and patterns
 - Authentication middleware is referenced but not implemented (use Laravel Sanctum/Passport)
 - Activity logging is referenced but not implemented (use spatie/laravel-activitylog)
 - The examples assume you have the base Laravel Simple Repository package installed

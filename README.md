@@ -3,14 +3,15 @@
 [![Latest Version on Packagist][ico-version]][link-packagist]
 [![Software License][ico-license]](LICENSE.md)
 [![CI Status](https://github.com/elegantmedia/Laravel-Simple-Repository/actions/workflows/ci.yml/badge.svg)](https://github.com/elegantmedia/Laravel-Simple-Repository/actions/workflows/ci.yml)
-[![Code Coverage](https://codecov.io/gh/elegantmedia/Laravel-Simple-Repository/branch/v5.x/graph/badge.svg)](https://codecov.io/gh/elegantmedia/Laravel-Simple-Repository)
+[![Code Coverage](https://codecov.io/gh/elegantmedia/Laravel-Simple-Repository/branch/v6.x/graph/badge.svg)](https://codecov.io/gh/elegantmedia/Laravel-Simple-Repository)
 
-A clean and type-safe implementation of the repository pattern for Laravel 12+ applications.
+A clean and type-safe implementation of the repository pattern for Laravel 13+ applications.
 
 ## Version Compatibility
 
 | Package Version | Laravel Version | PHP Version | Branch |
 |-----------------|-----------------|-------------|--------|
+| 6.x             | 13.x            | ^8.3        | v6.x   |
 | 5.x             | 12.x            | ^8.2        | v5.x   |
 | 4.x             | 11.x            | ^8.2        | v4.x   |
 | 3.x             | 10.x            | ^8.1        | master |
@@ -20,7 +21,7 @@ A clean and type-safe implementation of the repository pattern for Laravel 12+ a
 
 - **[Architecture Guide](docs/ARCHITECTURE.md)** - Understand the design decisions, patterns, and component relationships
 - **[Development Guide](docs/DEVELOPMENT.md)** - Contributing guidelines, testing strategies, and development workflow
-- **[Migration Guide](docs/MIGRATION_GUIDE_v4-v5.md)** - Upgrade from v4.x to v5.x with breaking changes and new features
+- **[Migration Guide: v4 to v5](docs/MIGRATION_GUIDE_v4-v5.md)** - Upgrade from v4.x to v5.x with breaking changes and new features
 - **[Examples](examples/EXAMPLES.md)** - Complete working examples showing real-world usage patterns
 - **[Changelog](CHANGELOG.md)** - Version history and release notes
 
@@ -31,7 +32,7 @@ Laravel Simple Repository provides a powerful abstraction layer between your app
 ### Why Use This Package?
 
 - **Separation of Concerns**: Keep your controllers thin and your models focused on business logic by moving data access to dedicated repository classes
-- **Type Safety**: Built with PHP 8.2+ features for full type hinting and IDE autocompletion support
+- **Type Safety**: Built with PHP 8.3+ features for full type hinting and IDE autocompletion support
 - **Testability**: Easy to mock and test your data layer without touching the database
 - **Consistency**: Standardized API across all your repositories with common operations pre-built
 - **Flexibility**: Advanced filtering system that doesn't duplicate Laravel's query builder
